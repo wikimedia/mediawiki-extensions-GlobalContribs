@@ -252,7 +252,8 @@ class GlobalContribsPager extends ContribsPager {
 		* $descending: see phpdoc above
 		*/
 		$data = array();
-		foreach( array('meta', 'dev', 'en', 'customs', 'cuusoo', 'stories') as $wiki ){
+		global $gcwikis;
+		foreach( $gcwikis as $wiki ){
 			$dbr = wfGetDB( DB_SLAVE, array(), $wiki );
 			$thisData = $dbr->select( $tables, $fields, $conds, $fname, $options, $join_conds );
 			$newData = array();
