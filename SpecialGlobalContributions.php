@@ -251,28 +251,29 @@ class GlobalContribsPager extends ContribsPager {
 		* $limit: see phpdoc above
 		* $descending: see phpdoc above
 		*/
-		global $IP;
-		require_once( "$IP/extensions/GlobalDBAccess/GlobalDBAccess.php" );
-		$data = array( GlobalDB::selectAll( $tables, $fields, $conds, $fname, $options, $join_conds ), );
+		$data = array();
+		foreach( array('meta', 'dev', 'en', 'customs', 'cuusoo', 'stories') as $wiki ){
+			$dbr = wfGetDB( DB_SLAVE, array(), $wiki );
+			$thisData = $dbr->select( $tables, $fields, $conds, $fname, $options, $join_conds );
+			$newData = array();
+			foreach( $thisData as $i => $row ){
+				//$dat[$i] -> wiki = $wiki;
+				$row -> wiki = $wiki;
+				$newData[] = $row;
+				//$newData[$i] -> wiki = $wiki;
+			}
+			$data[] = $newData;
+		}
+		//$data = array( GlobalDB::selectAll( $tables, $fields, $conds, $fname, $options, $join_conds ), );
 		wfRunHooks( 'GlobalContribsPager::reallyDoQuery', array( &$data, $pager, $offset, $limit, $descending ) );
 		//echo "<br><br><br>";
 		//var_dump( $data );
+	
 		$result = array();
-		
-		//echo count( $data[0] );
 
 		// loop all results and collect them in an array
 		foreach ( $data as $j => $query ) {
-			//echo $query -> numRows();
-			//$in = 0;
 			foreach ( $query as $i => $row ) {
-				//var_dump( $row );
-				//echo $row -> page_title;
-				//$in++;
-				//if($in==20){
-				//	die();
-				//}
-				//echo "<br>$in<br>";
 				// use index column as key, allowing us to easily sort in PHP
 				$result[$row->{$this->getIndexField()} . "-$i"] = $row;
 			}
@@ -337,7 +338,7 @@ class GlobalContribsPager extends ContribsPager {
 			}
 			# Is there a visible previous revision?
 			if ( $rev->userCan( Revision::DELETED_TEXT, $user ) && $rev->getParentId() !== 0 ) {
-			$difftext = Linker::linkKnown(
+				$difftext = Linker::linkKnown(
 					$page,
 					$this->messages['diff'],
 					array(),
@@ -345,9 +346,9 @@ class GlobalContribsPager extends ContribsPager {
 							'diff' => 'prev',
 							'oldid' => $row->rev_id
 					)
-			);
+				);
 			} else {
-			$difftext = $this->messages['diff'];
+				$difftext = $this->messages['diff'];
 			}
 			$histlink = Linker::linkKnown(
 					$page,
@@ -368,72 +369,72 @@ class GlobalContribsPager extends ContribsPager {
 			}
 	
 			$lang = $this->getLanguage();
-				$comment = $lang->getDirMark() . Linker::revComment( $rev, false, true );
-				$date = $lang->userTimeAndDate( $row->rev_timestamp, $user );
-				if ( $rev->userCan( Revision::DELETED_TEXT, $user ) ) {
+			$comment = $lang->getDirMark() . Linker::revComment( $rev, false, true );
+			$date = $lang->userTimeAndDate( $row->rev_timestamp, $user );
+			if ( $rev->userCan( Revision::DELETED_TEXT, $user ) ) {
 				$d = Linker::linkKnown(
-						$page,
-						htmlspecialchars( $date ),
-						array( 'class' => 'mw-changeslist-date' ),
+					$page,
+					htmlspecialchars( $date ),
+					array( 'class' => 'mw-changeslist-date' ),
 					array( 'oldid' => intval( $row->rev_id ) )
-					);
-						} else {
-						$d = htmlspecialchars( $date );
-						}
-						if ( $rev->isDeleted( Revision::DELETED_TEXT ) ) {
-						$d = '<span class="history-deleted">' . $d . '</span>';
+				);
+			} else {
+				$d = htmlspecialchars( $date );
+			}
+			if ( $rev->isDeleted( Revision::DELETED_TEXT ) ) {
+				$d = '<span class="history-deleted">' . $d . '</span>';
 			}
 	
-				# Show user names for /newbies as there may be different users.
-				# Note that we already excluded rows with hidden user names.
-				if ( $this->contribs == 'newbie' ) {
-						$userlink = ' . . ' . Linker::userLink( $rev->getUser(), $rev->getUserText() );
-						$userlink .= ' ' . $this->msg( 'parentheses' )->rawParams(
-								Linker::userTalkLink( $rev->getUser(), $rev->getUserText() ) )->escaped() . ' ';
-				} else {
-						$userlink = '';
-						}
+			# Show user names for /newbies as there may be different users.
+			# Note that we already excluded rows with hidden user names.
+			if ( $this->contribs == 'newbie' ) {
+				$userlink = ' . . ' . Linker::userLink( $rev->getUser(), $rev->getUserText() );
+				$userlink .= ' ' . $this->msg( 'parentheses' )->rawParams(
+					Linker::userTalkLink( $rev->getUser(), $rev->getUserText() ) )->escaped() . ' ';
+			} else {
+				$userlink = '';
+			}
+
+			if ( $rev->getParentId() === 0 ) {
+				$nflag = ChangesList::flag( 'newpage' );
+			} else {
+				$nflag = '';
+			}
 	
-						if ( $rev->getParentId() === 0 ) {
-						$nflag = ChangesList::flag( 'newpage' );
-						} else {
-						$nflag = '';
-						}
+			if ( $rev->isMinor() ) {
+				$mflag = ChangesList::flag( 'minor' );
+			} else {
+				$mflag = '';
+			}
 	
-						if ( $rev->isMinor() ) {
-							$mflag = ChangesList::flag( 'minor' );
-		} else {
-			$mflag = '';
-		}
+			$del = Linker::getRevDeleteLink( $user, $rev, $page );
+			if ( $del !== '' ) {
+				$del .= ' ';
+			}
 	
-		$del = Linker::getRevDeleteLink( $user, $rev, $page );
-		if ( $del !== '' ) {
-		$del .= ' ';
-		}
+			$diffHistLinks = $this->msg( 'parentheses' )->rawParams( $difftext . $this->messages['pipe-separator'] . $histlink )->escaped();
+			$ret = "{$del}{$d} {$diffHistLinks}{$chardiff}{$nflag}{$mflag} {$link}{$userlink} {$comment} {$topmarktext}";
 	
-		$diffHistLinks = $this->msg( 'parentheses' )->rawParams( $difftext . $this->messages['pipe-separator'] . $histlink )->escaped();
-				$ret = "{$del}{$d} {$diffHistLinks}{$chardiff}{$nflag}{$mflag} {$link}{$userlink} {$comment} {$topmarktext}";
-	
-				# Denote if username is redacted for this edit
-		if ( $rev->isDeleted( Revision::DELETED_USER ) ) {
-		$ret .= " <strong>" . $this->msg( 'rev-deleted-user-contribs' )->escaped() . "</strong>";
-		}
+			# Denote if username is redacted for this edit
+			if ( $rev->isDeleted( Revision::DELETED_USER ) ) {
+				$ret .= " <strong>" . $this->msg( 'rev-deleted-user-contribs' )->escaped() . "</strong>";
+			}
 	
 			# Tags, if any.
-		//list( $tagSummary, $newClasses ) = ChangeTags::formatSummaryRow( $row->ts_tags, 'contributions' );
-		//$classes = array_merge( $classes, $newClasses );
-		//$ret .= " $tagSummary";
+			//list( $tagSummary, $newClasses ) = ChangeTags::formatSummaryRow( $row->ts_tags, 'contributions' );
+			//$classes = array_merge( $classes, $newClasses );
+			//$ret .= " $tagSummary";
 		}
 	
 		// Let extensions add data
-			wfRunHooks( 'ContributionsLineEnding', array( $this, &$ret, $row, &$classes ) );
+		wfRunHooks( 'ContributionsLineEnding', array( $this, &$ret, $row, &$classes ) );
 			
-			$wiki = "<span class='gc-wiki'>{$row->wiki}</span>";
+		$wiki = "<span class='gc-wiki'>{$row->wiki} - </span>";
 	
-			$classes = implode( ' ', $classes );
-			$ret = "<li class=\"$classes\">$wiki $ret</li>\n";
+		$classes = implode( ' ', $classes );
+		$ret = "<li class=\"$classes\">$wiki$ret</li>\n";
 	
-			wfProfileOut( __METHOD__ );
-			return $ret;
+		wfProfileOut( __METHOD__ );
+		return $ret;
 	}
 }
