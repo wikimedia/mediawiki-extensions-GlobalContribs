@@ -4,7 +4,8 @@ $messages = array();
 
 $messages[ 'en' ] = array(
 		'globalcontribs' => "GlobalContribs", 
-		'globalcontributions' => "GlobalContributions", 
+		'globalcontributions' => "GlobalContributions",
+		'globaleditcount' => "GlobalEditcount", 
 		'globalcontribs-desc' => "Shows contributions from all projects in a wikifarm",
 		'globalcontributions-desc' => "Shows contributions from all projects in a wikifarm",
 );
