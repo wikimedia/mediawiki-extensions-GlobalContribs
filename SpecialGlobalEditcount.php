@@ -14,10 +14,10 @@ class SpecialGlobalEditcount extends Editcount {
 	 * @return array
 	 */
 	function editsByNs( $uid ) {
-		$fname = 'Editcount::editsByNs';
+		global $gcwikis;
+
 		$nscount = array();
 
-		global $gcwikis;
 		foreach( $gcwikis as $wiki ){
 			$dbr = wfGetDB( DB_SLAVE, array(), $wiki );
 			$res = $dbr -> select(
@@ -28,7 +28,7 @@ class SpecialGlobalEditcount extends Editcount {
 					'rev_user = user_id',
 					'rev_page = page_id'
 				),
-				$fname,
+				__METHOD__,
 				array( 'GROUP BY' => 'page_namespace' )
 			);
 			foreach( $res as $row ){
@@ -39,19 +39,7 @@ class SpecialGlobalEditcount extends Editcount {
 				}
 			}
 		}
-		
-		$this -> resT = $dbr->selectSQLText(
-				array( 'user', 'revision', 'page' ),
-				array( 'page_namespace', 'COUNT(*) as count' ),
-				array(
-						'user_id' => $uid,
-						'rev_user = user_id',
-						'rev_page = page_id'
-				),
-				$fname,
-				array( 'GROUP BY' => 'page_namespace' )
-		);
-		
+
 		return $nscount;
 	}
 
@@ -63,9 +51,10 @@ class SpecialGlobalEditcount extends Editcount {
 	 * @return string
 	 */
 	function editsInNs( $uid, $ns ) {
-		$fname = 'Editcount::editsInNs';
-		$i = 0;
 		global $gcwikis;
+
+		$i = 0;
+
 		foreach( $gcwikis as $wiki ){
 			$dbr = wfGetDB( DB_SLAVE, array(), $wiki );
 			$res = $dbr->selectField(
@@ -77,11 +66,12 @@ class SpecialGlobalEditcount extends Editcount {
 					'rev_user = user_id',
 					'rev_page = page_id'
 				),
-				$fname,
+				__METHOD__,
 				array( 'GROUP BY' => 'page_namespace' )
 			);
 			$i += intval( $res );
 		}
+
 		return strval( $i );
 	}
 }
