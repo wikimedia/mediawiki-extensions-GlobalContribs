@@ -21,11 +21,10 @@ class SpecialGlobalEditcount extends Editcount {
 		foreach( $gcwikis as $wiki ){
 			$dbr = wfGetDB( DB_SLAVE, array(), $wiki );
 			$res = $dbr -> select(
-				array( 'user', 'revision', 'page' ),
+				array( 'revision', 'page' ),
 				array( 'page_namespace', 'COUNT(*) as count' ),
 				array(
-					'user_id' => $uid,
-					'rev_user = user_id',
+					'rev_user' => $uid,
 					'rev_page = page_id'
 				),
 				__METHOD__,
@@ -58,12 +57,11 @@ class SpecialGlobalEditcount extends Editcount {
 		foreach( $gcwikis as $wiki ){
 			$dbr = wfGetDB( DB_SLAVE, array(), $wiki );
 			$res = $dbr->selectField(
-				array( 'user', 'revision', 'page' ),
+				array( 'revision', 'page' ),
 				array( 'COUNT(*) as count' ),
 				array(
-					'user_id' => $uid,
 					'page_namespace' => $ns,
-					'rev_user = user_id',
+					'rev_user' => $uid,
 					'rev_page = page_id'
 				),
 				__METHOD__,
