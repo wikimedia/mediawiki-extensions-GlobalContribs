@@ -219,7 +219,7 @@ class SpecialGlobalContributions extends SpecialContributions {
  * @ingroup SpecialPage Pager
  */
 class GlobalContribsPager extends ContribsPager {
-	
+
 	/**
 	 * This method basically executes the exact same code as the parent class, though with
 	 * a hook added, to allow extentions to add additional queries.
@@ -259,7 +259,7 @@ class GlobalContribsPager extends ContribsPager {
 			$newData = array();
 			foreach( $thisData as $i => $row ){
 				//$dat[$i] -> wiki = $wiki;
-				$row -> wiki = $wiki;
+				$row->wiki = $wiki;
 				$newData[] = $row;
 				//$newData[$i] -> wiki = $wiki;
 			}
@@ -269,7 +269,7 @@ class GlobalContribsPager extends ContribsPager {
 		wfRunHooks( 'GlobalContribsPager::reallyDoQuery', array( &$data, $pager, $offset, $limit, $descending ) );
 		//echo "<br><br><br>";
 		//var_dump( $data );
-	
+
 		$result = array();
 
 		// loop all results and collect them in an array
@@ -295,13 +295,55 @@ class GlobalContribsPager extends ContribsPager {
 
 		return new FakeResultWrapper( $result );
 	}
-	
+
+	function getUserCond() {
+		$condition = array();
+		$join_conds = array();
+		$tables = array( 'revision', 'page' );
+
+		$uid = User::idFromName( $this->target );
+		if ( $uid ) {
+			$condition['rev_user'] = $uid;
+			$index = 'user_timestamp';
+		} else {
+			$condition['rev_user_text'] = $this->target;
+			$index = 'usertext_timestamp';
+		}
+
+		if ( $this->deletedOnly ) {
+			$condition[] = "rev_deleted != '0'";
+		}
+		if ( $this->topOnly ) {
+			$condition[] = "rev_id = page_latest";
+		}
+		return array( $tables, $index, $condition, $join_conds );
+	}
+
+	function doBatchLookups() {
+		# Do a link batch query
+		$this->mResult->seek( 0 );
+		$revIds = array();
+		$batch = new LinkBatch();
+		# Give some pointers to make (last) links
+		foreach ( $this->mResult as $row ) {
+			if( isset( $row->rev_parent_id ) && $row->rev_parent_id ) {
+				$revIds[] = $row->rev_parent_id;
+			}
+			if ( isset( $row->rev_id ) ) {
+				$batch->add( $row->page_namespace, $row->page_title );
+			}
+		}
+		$this->mParentLens = Revision::getParentLengths( $this->getDatabase(), $revIds );
+		$batch->execute();
+		$this->mResult->seek( 0 );
+	}
+
 	function formatRow( $row ) {
 		wfProfileIn( __METHOD__ );
-	
+
 		$ret = '';
 		$classes = array();
-	
+
 		/*
 		 * There may be more than just revision rows. To make sure that we'll only be processing
 		* revisions here, let's _try_ to build a revision out of our row (without displaying
@@ -313,10 +355,10 @@ class GlobalContribsPager extends ContribsPager {
 		$rev = new Revision( $row );
 		$validRevision = $rev->getParentId() !== null;
 		wfRestoreWarnings();
-	
+
 		if ( $validRevision ) {
 			$classes = array();
-	
+
 			$page = Title::newFromRow( $row );
 			$link = Linker::link(
 					$page,
@@ -357,7 +399,7 @@ class GlobalContribsPager extends ContribsPager {
 					array(),
 					array( 'action' => 'history' )
 					);
-	
+
 			if ( $row->rev_parent_id === null ) {
 				// For some reason rev_parent_id isn't populated for this row.
 				// Its rumoured this is true on wikipedia for some revisions (bug 34922).
@@ -368,7 +410,7 @@ class GlobalContribsPager extends ContribsPager {
 						$chardiff = ' <span class="mw-changeslist-separator">. .</span> ' . ChangesList::showCharacterDifference(
 								$parentLen, $row->rev_len, $this->getContext() ) . ' <span class="mw-changeslist-separator">. .</span> ';
 			}
-	
+
 			$lang = $this->getLanguage();
 			$comment = $lang->getDirMark() . Linker::revComment( $rev, false, true );
 			$date = $lang->userTimeAndDate( $row->rev_timestamp, $user );
@@ -385,7 +427,7 @@ class GlobalContribsPager extends ContribsPager {
 			if ( $rev->isDeleted( Revision::DELETED_TEXT ) ) {
 				$d = '<span class="history-deleted">' . $d . '</span>';
 			}
-	
+
 			# Show user names for /newbies as there may be different users.
 			# Note that we already excluded rows with hidden user names.
 			if ( $this->contribs == 'newbie' ) {
@@ -401,40 +443,40 @@ class GlobalContribsPager extends ContribsPager {
 			} else {
 				$nflag = '';
 			}
-	
+
 			if ( $rev->isMinor() ) {
 				$mflag = ChangesList::flag( 'minor' );
 			} else {
 				$mflag = '';
 			}
-	
+
 			$del = Linker::getRevDeleteLink( $user, $rev, $page );
 			if ( $del !== '' ) {
 				$del .= ' ';
 			}
-	
+
 			$diffHistLinks = $this->msg( 'parentheses' )->rawParams( $difftext . $this->messages['pipe-separator'] . $histlink )->escaped();
 			$ret = "{$del}{$d} {$diffHistLinks}{$chardiff}{$nflag}{$mflag} {$link}{$userlink} {$comment} {$topmarktext}";
-	
+
 			# Denote if username is redacted for this edit
 			if ( $rev->isDeleted( Revision::DELETED_USER ) ) {
 				$ret .= " <strong>" . $this->msg( 'rev-deleted-user-contribs' )->escaped() . "</strong>";
 			}
-	
+
 			# Tags, if any.
 			//list( $tagSummary, $newClasses ) = ChangeTags::formatSummaryRow( $row->ts_tags, 'contributions' );
 			//$classes = array_merge( $classes, $newClasses );
 			//$ret .= " $tagSummary";
 		}
-	
+
 		// Let extensions add data
 		wfRunHooks( 'ContributionsLineEnding', array( $this, &$ret, $row, &$classes ) );
-			
+
 		$wiki = "<span class='gc-wiki'>{$row->wiki} - </span>";
-	
+
 		$classes = implode( ' ', $classes );
 		$ret = "<li class=\"$classes\">$wiki$ret</li>\n";
-	
+
 		wfProfileOut( __METHOD__ );
 		return $ret;
 	}
