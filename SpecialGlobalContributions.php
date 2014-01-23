@@ -299,7 +299,7 @@ class GlobalContribsPager extends ContribsPager {
 	function getUserCond() {
 		$condition = array();
 		$join_conds = array();
-		$tables = array( 'revision', 'page', 'user' );
+		$tables = array( 'revision', 'page' );
 
 		$uid = User::idFromName( $this->target );
 		if ( $uid ) {
@@ -317,6 +317,57 @@ class GlobalContribsPager extends ContribsPager {
 			$condition[] = "rev_id = page_latest";
 		}
 		return array( $tables, $index, $condition, $join_conds );
+	}
+
+
+	function getQueryInfo() {
+		list( $tables, $index, $userCond, $join_cond ) = $this->getUserCond();
+
+		$user = $this->getUser();
+		$conds = array_merge( $userCond, $this->getNamespaceCond() );
+
+		// Paranoia: avoid brute force searches (bug 17342)
+		if ( !$user->isAllowed( 'deletedhistory' ) ) {
+			$conds[] = $this->mDb->bitAnd( 'rev_deleted', Revision::DELETED_USER ) . ' = 0';
+		} elseif ( !$user->isAllowed( 'suppressrevision' ) ) {
+			$conds[] = $this->mDb->bitAnd( 'rev_deleted', Revision::SUPPRESSED_USER ) .
+			' != ' . Revision::SUPPRESSED_USER;
+		}
+
+		# Don't include orphaned revisions
+		$join_cond['page'] = Revision::pageJoinCond();
+		# Get the current user name for accounts
+		$join_cond['user'] = Revision::userJoinCond();
+
+		$options = array();
+		if ( $index ) {
+		$options['USE INDEX'] = array( 'revision' => $index );
+		}
+
+		$queryInfo = array(
+				'tables' => $tables,
+				'fields' => array_merge(
+						Revision::selectFields(),
+						array( 'page_namespace', 'page_title', 'page_is_new',
+								'page_latest', 'page_is_redirect', 'page_len' )
+						),
+						'conds' => $conds,
+						'options' => $options,
+						'join_conds' => $join_cond
+		);
+
+		ChangeTags::modifyDisplayQuery(
+		$queryInfo['tables'],
+		$queryInfo['fields'],
+		$queryInfo['conds'],
+				$queryInfo['join_conds'],
+						$queryInfo['options'],
+						$this->tagFilter
+		);
+
+		wfRunHooks( 'ContribsPager::getQueryInfo', array( &$this, &$queryInfo ) );
+
+		return $queryInfo;
 	}
 
 	function doBatchLookups() {
