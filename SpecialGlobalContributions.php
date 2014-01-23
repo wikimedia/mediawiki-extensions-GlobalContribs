@@ -299,7 +299,7 @@ class GlobalContribsPager extends ContribsPager {
 	function getUserCond() {
 		$condition = array();
 		$join_conds = array();
-		$tables = array( 'revision', 'page' );
+		$tables = array( 'revision', 'page', 'user' );
 
 		$uid = User::idFromName( $this->target );
 		if ( $uid ) {
