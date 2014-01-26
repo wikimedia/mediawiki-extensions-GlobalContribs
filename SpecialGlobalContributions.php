@@ -371,6 +371,7 @@ class GlobalContribsPager extends ContribsPager {
 	}
 
 	function doBatchLookups() {
+		global $wgGlobalContribsWikis;
 		# Do a link batch query
 		$this->mResult->seek( 0 );
 		$revIds = array();
@@ -384,7 +385,9 @@ class GlobalContribsPager extends ContribsPager {
 				$batch->add( $row->page_namespace, $row->page_title );
 			}
 		}
-		$this->mParentLens = Revision::getParentLengths( $this->getDatabase(), $revIds );
+		foreach ( $wgGlobalContribsWikis as $wiki => $url ) {
+			$this->mParentLensArr[$wiki] = Revision::getParentLengths( wfGetDB( DB_SLAVE, array(), $wiki ), $revIds );
+		}
 		$batch->execute();
 		$this->mResult->seek( 0 );
 	}
@@ -460,7 +463,7 @@ class GlobalContribsPager extends ContribsPager {
 				// Next best thing is to have the total number of bytes.
 				$chardiff = ' <span class="mw-changeslist-separator">. .</span> ' . Linker::formatRevisionSize( $row->rev_len ) . ' <span class="mw-changeslist-separator">. .</span> ';
 			} else {
-						$parentLen = isset( $this->mParentLens[$row->rev_parent_id] ) ? $this->mParentLens[$row->rev_parent_id] : 0;
+						$parentLen = isset( $this->mParentLensArr[$row->wiki][$row->rev_parent_id] ) ? $this->mParentLensArr[$row->wiki][$row->rev_parent_id] : 0;
 						$chardiff = ' <span class="mw-changeslist-separator">. .</span> ' . ChangesList::showCharacterDifference(
 								$parentLen, $row->rev_len, $this->getContext() ) . ' <span class="mw-changeslist-separator">. .</span> ';
 			}
