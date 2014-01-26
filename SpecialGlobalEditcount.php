@@ -14,11 +14,11 @@ class SpecialGlobalEditcount extends Editcount {
 	 * @return array
 	 */
 	function editsByNs( $uid ) {
-		global $gcwikis;
+		global $wgGlobalContribsWikis;
 
 		$nscount = array();
 
-		foreach( $gcwikis as $wiki ){
+		foreach( $wgGlobalContribsWikis as $wiki => $url ){
 			$dbr = wfGetDB( DB_SLAVE, array(), $wiki );
 			$res = $dbr -> select(
 				array( 'revision', 'page' ),
@@ -50,11 +50,11 @@ class SpecialGlobalEditcount extends Editcount {
 	 * @return string
 	 */
 	function editsInNs( $uid, $ns ) {
-		global $gcwikis;
+		global $wgGlobalContribsWikis;
 
 		$i = 0;
 
-		foreach( $gcwikis as $wiki ){
+		foreach( $wgGlobalContribsWikis as $wiki => $url ){
 			$dbr = wfGetDB( DB_SLAVE, array(), $wiki );
 			$res = $dbr->selectField(
 				array( 'revision', 'page' ),

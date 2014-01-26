@@ -252,8 +252,8 @@ class GlobalContribsPager extends ContribsPager {
 		* $descending: see phpdoc above
 		*/
 		$data = array();
-		global $gcwikis;
-		foreach( $gcwikis as $wiki ){
+		global $wgGlobalContribsWikis;
+		foreach( $wgGlobalContribsWikis as $wiki => $url ){
 			$dbr = wfGetDB( DB_SLAVE, array(), $wiki );
 			$thisData = $dbr->select( $tables, $fields, $conds, $fname, $options, $join_conds );
 			$newData = array();
@@ -390,6 +390,7 @@ class GlobalContribsPager extends ContribsPager {
 	}
 
 	function formatRow( $row ) {
+		global $wgGlobalContribsWikis;
 		wfProfileIn( __METHOD__ );
 
 		$ret = '';
@@ -411,12 +412,15 @@ class GlobalContribsPager extends ContribsPager {
 			$classes = array();
 
 			$page = Title::newFromRow( $row );
-			$link = Linker::link(
-					$page,
-					htmlspecialchars( $page->getPrefixedText() ),
-					array( 'class' => 'mw-contributions-title' ),
-					$page->isRedirect() ? array( 'redirect' => 'no' ) : array()
+			$link = Html::element(
+				'a',
+				array(
+					'href' => $wgGlobalContribsWikis[$row->wiki] . $page->getFullText(),
+					'class' => 'mw-contributions-title',
+				),
+				htmlspecialchars( $page->getPrefixedText() )
 			);
+
 			# Mark current revisions
 			$topmarktext = '';
 			$user = $this->getUser();
@@ -432,24 +436,23 @@ class GlobalContribsPager extends ContribsPager {
 			}
 			# Is there a visible previous revision?
 			if ( $rev->userCan( Revision::DELETED_TEXT, $user ) && $rev->getParentId() !== 0 ) {
-				$difftext = Linker::linkKnown(
-					$page,
-					$this->messages['diff'],
-					array(),
+				$difftext = Html::element(
+					'a',
 					array(
-							'diff' => 'prev',
-							'oldid' => $row->rev_id
-					)
+						'href' => $wgGlobalContribsWikis[$row->wiki] . $page->getFullText() . '?diff=prev&oldid=' . $row->rev_id,
+					),
+					$this->messages['diff']
 				);
 			} else {
 				$difftext = $this->messages['diff'];
 			}
-			$histlink = Linker::linkKnown(
-					$page,
-					$this->messages['hist'],
-					array(),
-					array( 'action' => 'history' )
-					);
+			$histlink = Html::element(
+				'a',
+				array(
+					'href' => $wgGlobalContribsWikis[$row->wiki] . $page->getFullText() . '?action=history',
+				),
+				$this->messages['hist']
+			);
 
 			if ( $row->rev_parent_id === null ) {
 				// For some reason rev_parent_id isn't populated for this row.
@@ -466,11 +469,13 @@ class GlobalContribsPager extends ContribsPager {
 			$comment = $lang->getDirMark() . Linker::revComment( $rev, false, true );
 			$date = $lang->userTimeAndDate( $row->rev_timestamp, $user );
 			if ( $rev->userCan( Revision::DELETED_TEXT, $user ) ) {
-				$d = Linker::linkKnown(
-					$page,
-					htmlspecialchars( $date ),
-					array( 'class' => 'mw-changeslist-date' ),
-					array( 'oldid' => intval( $row->rev_id ) )
+				$d = Html::element(
+					'a',
+					array(
+						'href' => $wgGlobalContribsWikis[$row->wiki] . $page->getFullText() . '?oldid=' . intval( $row->rev_id ),
+						'class' => 'mw-changeslist-date',
+					),
+					htmlspecialchars( $date )
 				);
 			} else {
 				$d = htmlspecialchars( $date );

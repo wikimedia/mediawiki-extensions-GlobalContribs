@@ -16,3 +16,5 @@ $wgAutoloadClasses[ 'SpecialGlobalEditcount' ] = __DIR__ . '/SpecialGlobalEditco
 $wgSpecialPages[ 'GlobalEditcount' ] = 'SpecialGlobalEditcount';
 
 $wgExtensionMessagesFiles[ 'GlobalContribs' ] = __DIR__ . '/GlobalContribs.i18n.php';
+
+$wgGlobalContribsWikis = array();
