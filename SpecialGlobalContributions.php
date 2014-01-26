@@ -506,13 +506,8 @@ class GlobalContribsPager extends ContribsPager {
 				$mflag = '';
 			}
 
-			$del = Linker::getRevDeleteLink( $user, $rev, $page );
-			if ( $del !== '' ) {
-				$del .= ' ';
-			}
-
 			$diffHistLinks = $this->msg( 'parentheses' )->rawParams( $difftext . $this->messages['pipe-separator'] . $histlink )->escaped();
-			$ret = "{$del}{$d} {$diffHistLinks}{$chardiff}{$nflag}{$mflag} {$link}{$userlink} {$comment} {$topmarktext}";
+			$ret = "{$d} {$diffHistLinks}{$chardiff}{$nflag}{$mflag} {$link}{$userlink} {$comment} {$topmarktext}";
 
 			# Denote if username is redacted for this edit
 			if ( $rev->isDeleted( Revision::DELETED_USER ) ) {
