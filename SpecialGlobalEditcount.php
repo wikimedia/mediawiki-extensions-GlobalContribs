@@ -72,4 +72,11 @@ class SpecialGlobalEditcount extends Editcount {
 
 		return strval( $i );
 	}
+
+	/**
+	 * Not ideal, but for calls to $this->getTitle() return Editcount (no global) otherwise
+	 */
+	function getTitle(){
+		return SpecialPage::getTitleFor( 'GlobalEditcount' );
+	}
 }
