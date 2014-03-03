@@ -8,6 +8,39 @@ class SpecialGlobalEditcount extends Editcount {
 	}
 
 	/**
+	 * main()
+	 */
+	public function execute( $par ) {
+		global $wgRequest, $wgOut, $wgContLang;
+
+		$target = isset( $par ) ? $par : $wgRequest->getText( 'username' );
+
+		list( $username, $namespace ) = $this->extractParamaters( $target );
+
+		$username = Title::newFromText( $username );
+		$username = is_object( $username ) ? $username->getText() : '';
+
+		$uid = User::idFromName( $username );
+
+		if ( $this->including() ) {
+			if ( $namespace === null ) {
+				if ($uid != 0)
+					$out = $wgContLang->formatNum( User::edits( $uid ) );
+				else
+					$out = "";
+			} else {
+				$out = $wgContLang->formatNum( $this->editsInNs( $uid, $namespace ) );
+			}
+			$wgOut->addHTML( $out );
+		} else {
+			if ($uid != 0)
+				$total = $this->getTotal( $nscount = $this->editsByNs( $uid ) );
+			$html = new GlobalEditcountHTML;
+			$html->outputHTML( $username, $uid, @$nscount, @$total );
+		}
+	}
+
+	/**
 	 * Count the number of edits of a user by namespace
 	 *
 	 * @param int $uid The user ID to check
@@ -72,6 +105,9 @@ class SpecialGlobalEditcount extends Editcount {
 
 		return strval( $i );
 	}
+}
+
+class GlobalEditcountHTML extends EditcountHTML {
 
 	/**
 	 * Not ideal, but for calls to $this->getTitle() return Editcount (no global) otherwise
@@ -80,3 +116,4 @@ class SpecialGlobalEditcount extends Editcount {
 		return SpecialPage::getTitleFor( 'GlobalEditcount' );
 	}
 }
+
