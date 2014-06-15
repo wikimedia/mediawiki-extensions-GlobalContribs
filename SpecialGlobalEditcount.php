@@ -1,6 +1,5 @@
 <?php
 
-
 class SpecialGlobalEditcount extends Editcount {
 
 	public function __construct() {
@@ -47,11 +46,11 @@ class SpecialGlobalEditcount extends Editcount {
 	 * @return array
 	 */
 	function editsByNs( $uid ) {
-		global $wgGlobalContribsWikis;
+		global $wgConf;
 
 		$nscount = array();
 
-		foreach( $wgGlobalContribsWikis as $wiki => $url ){
+		foreach( $wgConf->wikis as $wiki ){
 			$dbr = wfGetDB( DB_SLAVE, array(), $wiki );
 			$res = $dbr -> select(
 				array( 'revision', 'page' ),
@@ -83,11 +82,11 @@ class SpecialGlobalEditcount extends Editcount {
 	 * @return string
 	 */
 	function editsInNs( $uid, $ns ) {
-		global $wgGlobalContribsWikis;
+		global $wgConf;
 
 		$i = 0;
 
-		foreach( $wgGlobalContribsWikis as $wiki => $url ){
+		foreach( $wgConf->wikis as $wiki ){
 			$dbr = wfGetDB( DB_SLAVE, array(), $wiki );
 			$res = $dbr->selectField(
 				array( 'revision', 'page' ),

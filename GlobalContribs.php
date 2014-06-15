@@ -1,12 +1,12 @@
 <?php
 
-$wgExtensionCredits[ 'specialpage' ][] = array(
+$wgExtensionCredits['specialpage'][] = array(
 		'path' => __FILE__,
 		'name' => 'GlobalContribs',
 		'author' => 'Adam Carter/UltrasonicNXT',
 		'url' => 'https://github.com/Brickimedia/GlobalContribs',
 		'descriptionmsg' => 'globalcontribs-desc',
-		'version' => '1.0',
+		'version' => '1.1',
 );
 
 $wgAutoloadClasses[ 'SpecialGlobalContributions' ] = __DIR__ . '/SpecialGlobalContributions.php';
@@ -16,5 +16,3 @@ $wgAutoloadClasses[ 'SpecialGlobalEditcount' ] = __DIR__ . '/SpecialGlobalEditco
 $wgSpecialPages[ 'GlobalEditcount' ] = 'SpecialGlobalEditcount';
 
 $wgExtensionMessagesFiles[ 'GlobalContribs' ] = __DIR__ . '/GlobalContribs.i18n.php';
-
-$wgGlobalContribsWikis = array();

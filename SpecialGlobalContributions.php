@@ -252,8 +252,8 @@ class GlobalContribsPager extends ContribsPager {
 		* $descending: see phpdoc above
 		*/
 		$data = array();
-		global $wgGlobalContribsWikis;
-		foreach( $wgGlobalContribsWikis as $wiki => $url ){
+		global $wgConf;
+		foreach( $wgConf->wikis as $wiki ){
 			$dbr = wfGetDB( DB_SLAVE, array(), $wiki );
 			$thisData = $dbr->select( $tables, $fields, $conds, $fname, $options, $join_conds );
 			$newData = array();
@@ -345,24 +345,24 @@ class GlobalContribsPager extends ContribsPager {
 		}
 
 		$queryInfo = array(
-				'tables' => $tables,
-				'fields' => array_merge(
-						Revision::selectFields(),
-						array( 'page_namespace', 'page_title', 'page_is_new',
-								'page_latest', 'page_is_redirect', 'page_len' )
-						),
-						'conds' => $conds,
-						'options' => $options,
-						'join_conds' => $join_cond
+			'tables' => $tables,
+			'fields' => array_merge(
+				Revision::selectFields(),
+				array( 'page_namespace', 'page_title', 'page_is_new',
+					'page_latest', 'page_is_redirect', 'page_len' )
+				),
+			'conds' => $conds,
+			'options' => $options,
+			'join_conds' => $join_cond
 		);
 
 		ChangeTags::modifyDisplayQuery(
-		$queryInfo['tables'],
-		$queryInfo['fields'],
-		$queryInfo['conds'],
-				$queryInfo['join_conds'],
-						$queryInfo['options'],
-						$this->tagFilter
+			$queryInfo['tables'],
+			$queryInfo['fields'],
+			$queryInfo['conds'],
+			$queryInfo['join_conds'],
+			$queryInfo['options'],
+			$this->tagFilter
 		);
 
 		wfRunHooks( 'ContribsPager::getQueryInfo', array( &$this, &$queryInfo ) );
@@ -371,7 +371,7 @@ class GlobalContribsPager extends ContribsPager {
 	}
 
 	function doBatchLookups() {
-		global $wgGlobalContribsWikis;
+		global $wgConf;
 		# Do a link batch query
 		$this->mResult->seek( 0 );
 		$revIds = array();
@@ -385,7 +385,7 @@ class GlobalContribsPager extends ContribsPager {
 				$batch->add( $row->page_namespace, $row->page_title );
 			}
 		}
-		foreach ( $wgGlobalContribsWikis as $wiki => $url ) {
+		foreach ( $wgConf->wikis as $wiki ) {
 			$this->mParentLensArr[$wiki] = Revision::getParentLengths( wfGetDB( DB_SLAVE, array(), $wiki ), $revIds );
 		}
 		$batch->execute();
@@ -393,7 +393,7 @@ class GlobalContribsPager extends ContribsPager {
 	}
 
 	function formatRow( $row ) {
-		global $wgGlobalContribsWikis;
+		global $wgConf;
 		wfProfileIn( __METHOD__ );
 
 		$ret = '';
@@ -415,10 +415,13 @@ class GlobalContribsPager extends ContribsPager {
 			$classes = array();
 
 			$page = Title::newFromRow( $row );
+
+			$url = str_replace( '$1', $page->getFullText(), $wgConf->settings['wgArticlePath'][$row->wiki] );
+
 			$link = Html::element(
 				'a',
 				array(
-					'href' => $wgGlobalContribsWikis[$row->wiki] . $page->getFullText(),
+					'href' => $url,
 					'class' => 'mw-contributions-title',
 				),
 				htmlspecialchars( $page->getPrefixedText() )
@@ -442,7 +445,7 @@ class GlobalContribsPager extends ContribsPager {
 				$difftext = Html::element(
 					'a',
 					array(
-						'href' => $wgGlobalContribsWikis[$row->wiki] . $page->getFullText() . '?diff=prev&oldid=' . $row->rev_id,
+						'href' => $url . '?diff=prev&oldid=' . $row->rev_id,
 					),
 					$this->messages['diff']
 				);
@@ -452,7 +455,7 @@ class GlobalContribsPager extends ContribsPager {
 			$histlink = Html::element(
 				'a',
 				array(
-					'href' => $wgGlobalContribsWikis[$row->wiki] . $page->getFullText() . '?action=history',
+					'href' => $url . '?action=history',
 				),
 				$this->messages['hist']
 			);
@@ -463,9 +466,9 @@ class GlobalContribsPager extends ContribsPager {
 				// Next best thing is to have the total number of bytes.
 				$chardiff = ' <span class="mw-changeslist-separator">. .</span> ' . Linker::formatRevisionSize( $row->rev_len ) . ' <span class="mw-changeslist-separator">. .</span> ';
 			} else {
-						$parentLen = isset( $this->mParentLensArr[$row->wiki][$row->rev_parent_id] ) ? $this->mParentLensArr[$row->wiki][$row->rev_parent_id] : 0;
-						$chardiff = ' <span class="mw-changeslist-separator">. .</span> ' . ChangesList::showCharacterDifference(
-								$parentLen, $row->rev_len, $this->getContext() ) . ' <span class="mw-changeslist-separator">. .</span> ';
+				$parentLen = isset( $this->mParentLensArr[$row->wiki][$row->rev_parent_id] ) ? $this->mParentLensArr[$row->wiki][$row->rev_parent_id] : 0;
+				$chardiff = ' <span class="mw-changeslist-separator">. .</span> ' . ChangesList::showCharacterDifference(
+					$parentLen, $row->rev_len, $this->getContext() ) . ' <span class="mw-changeslist-separator">. .</span> ';
 			}
 
 			$lang = $this->getLanguage();
@@ -475,7 +478,7 @@ class GlobalContribsPager extends ContribsPager {
 				$d = Html::element(
 					'a',
 					array(
-						'href' => $wgGlobalContribsWikis[$row->wiki] . $page->getFullText() . '?oldid=' . intval( $row->rev_id ),
+						'href' => $url . '?oldid=' . intval( $row->rev_id ),
 						'class' => 'mw-changeslist-date',
 					),
 					htmlspecialchars( $date )
