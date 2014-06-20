@@ -416,7 +416,7 @@ class GlobalContribsPager extends ContribsPager {
 
 			$page = Title::newFromRow( $row );
 
-			$url = str_replace( '$1', $page->getFullText(), $wgConf->settings['wgArticlePath'][$row->wiki] );
+			$url = $wgConf->getSetting( 'wgServer', $row->wiki, array() ) . str_replace( '$1', $page->getFullText(), $wgConf->getSetting( 'wgArticlePath', $row->wiki, array() ) );
 
 			$link = Html::element(
 				'a',
