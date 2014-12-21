@@ -50,11 +50,11 @@ class SpecialGlobalEditcount extends Editcount {
 
 		$nscount = array();
 
-		foreach( $wgConf->wikis as $wiki ){
+		foreach ( $wgConf->wikis as $wiki ) {
 			$dbr = wfGetDB( DB_SLAVE, array(), $wiki );
-			$res = $dbr -> select(
+			$res = $dbr->select(
 				array( 'revision', 'page' ),
-				array( 'page_namespace', 'COUNT(*) as count' ),
+				array( 'page_namespace', 'COUNT(*) AS count' ),
 				array(
 					'rev_user' => $uid,
 					'rev_page = page_id'
@@ -62,11 +62,11 @@ class SpecialGlobalEditcount extends Editcount {
 				__METHOD__,
 				array( 'GROUP BY' => 'page_namespace' )
 			);
-			foreach( $res as $row ){
-				if( isset( $nscount[ $row->page_namespace ] ) ){
-					$nscount[ $row->page_namespace] += intval( $row->count );
+			foreach ( $res as $row ) {
+				if ( isset( $nscount[$row->page_namespace] ) ) {
+					$nscount[$row->page_namespace] += intval( $row->count );
 				} else {
-					$nscount[ $row->page_namespace] = intval( $row->count );
+					$nscount[$row->page_namespace] = intval( $row->count );
 				}
 			}
 		}
@@ -86,7 +86,7 @@ class SpecialGlobalEditcount extends Editcount {
 
 		$i = 0;
 
-		foreach( $wgConf->wikis as $wiki ){
+		foreach ( $wgConf->wikis as $wiki ) {
 			$dbr = wfGetDB( DB_SLAVE, array(), $wiki );
 			$res = $dbr->selectField(
 				array( 'revision', 'page' ),
@@ -111,7 +111,7 @@ class GlobalEditcountHTML extends EditcountHTML {
 	/**
 	 * Not ideal, but for calls to $this->getTitle() return Editcount (no global) otherwise
 	 */
-	function getTitle(){
+	function getPageTitle() {
 		return SpecialPage::getTitleFor( 'GlobalEditcount' );
 	}
 }
