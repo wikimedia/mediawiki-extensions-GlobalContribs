@@ -1,33 +1,32 @@
 <?php
 
 /**
- * Implements Special:Contributions
-*
-* This program is free software; you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation; either version 2 of the License, or
-* (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License along
-* with this program; if not, write to the Free Software Foundation, Inc.,
-* 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-* http://www.gnu.org/copyleft/gpl.html
-*
-* @file
-* @ingroup SpecialPage
-*/
+ * Implements Special:GlobalContributions
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ * http://www.gnu.org/copyleft/gpl.html
+ *
+ * @file
+ * @ingroup SpecialPage
+ */
 
 /**
- * Special:Contributions, show user contributions in a paged list
-*
-* @ingroup SpecialPage
-*/
-
+ * Special:GlobalContributions, show user contributions in a paged list
+ *
+ * @ingroup SpecialPage
+ */
 class SpecialGlobalContributions extends SpecialContributions {
 
 	public function __construct() {
@@ -37,6 +36,7 @@ class SpecialGlobalContributions extends SpecialContributions {
 	public function execute( $par ) {
 		$this->setHeaders();
 		$this->outputHeader();
+
 		$out = $this->getOutput();
 		$out->addModuleStyles( 'mediawiki.special' );
 
@@ -128,9 +128,9 @@ class SpecialGlobalContributions extends SpecialContributions {
 			// Maintain some level of backwards compatability
 			// If people request feeds using the old parameters, redirect to API
 			$apiParams = array(
-					'action' => 'feedcontributions',
-					'feedformat' => $feedType,
-					'user' => $target,
+				'action' => 'feedcontributions',
+				'feedformat' => $feedType,
+				'user' => $target,
 			);
 			if ( $this->opts['topOnly'] ) {
 				$apiParams['toponly'] = true;
@@ -160,33 +160,33 @@ class SpecialGlobalContributions extends SpecialContributions {
 		// Add RSS/atom links
 		$this->addFeedLinks( array( 'action' => 'feedcontributions', 'user' => $target ) );
 
-		if ( wfRunHooks( 'SpecialContributionsBeforeMainOutput', array( $id ) ) ) {
-
+		if ( Hooks::run( 'SpecialContributionsBeforeMainOutput', array( $id ) ) ) {
 			$out->addHTML( $this->getForm() );
 
 			$pager = new GlobalContribsPager( $this->getContext(), array(
-					'target' => $target,
-					'contribs' => $this->opts['contribs'],
-					'namespace' => $this->opts['namespace'],
-					'year' => $this->opts['year'],
-					'month' => $this->opts['month'],
-					'deletedOnly' => $this->opts['deletedOnly'],
-					'topOnly' => $this->opts['topOnly'],
-					'nsInvert' => $this->opts['nsInvert'],
-					'associated' => $this->opts['associated'],
+				'target' => $target,
+				'contribs' => $this->opts['contribs'],
+				'namespace' => $this->opts['namespace'],
+				'year' => $this->opts['year'],
+				'month' => $this->opts['month'],
+				'deletedOnly' => $this->opts['deletedOnly'],
+				'topOnly' => $this->opts['topOnly'],
+				'nsInvert' => $this->opts['nsInvert'],
+				'associated' => $this->opts['associated'],
 			) );
 			if ( !$pager->getNumRows() ) {
 				$out->addWikiMsg( 'nocontribs', $target );
 			} else {
 				# Show a message about slave lag, if applicable
 				$lag = wfGetLB()->safeGetLag( $pager->getDatabase() );
-				if ( $lag > 0 )
+				if ( $lag > 0 ) {
 					$out->showLagWarning( $lag );
+				}
 
 				$out->addHTML(
-						'<p>' . $pager->getNavigationBar() . '</p>' .
-						$pager->getBody() .
-						'<p>' . $pager->getNavigationBar() . '</p>'
+					'<p>' . $pager->getNavigationBar() . '</p>' .
+					$pager->getBody() .
+					'<p>' . $pager->getNavigationBar() . '</p>'
 				);
 			}
 			$out->preventClickjacking( $pager->getPreventClickjacking() );
@@ -195,27 +195,29 @@ class SpecialGlobalContributions extends SpecialContributions {
 			# Show the appropriate "footer" message - WHOIS tools, etc.
 			if ( $this->opts['contribs'] == 'newbie' ) {
 				$message = 'sp-contributions-footer-newbies';
-			} elseif( IP::isIPAddress( $target ) ) {
+			} elseif ( IP::isIPAddress( $target ) ) {
 				$message = 'sp-contributions-footer-anon';
-			} elseif( $userObj->isAnon() ) {
+			} elseif ( $userObj->isAnon() ) {
 				// No message for non-existing users
 				$message = '';
 			} else {
 				$message = 'sp-contributions-footer';
 			}
 
-			if( $message ) {
+			if ( $message ) {
 				if ( !$this->msg( $message, $target )->isDisabled() ) {
 					$out->wrapWikiMsg(
-							"<div class='mw-contributions-footer'>\n$1\n</div>",
-							array( $message, $target ) );
+						"<div class='mw-contributions-footer'>\n$1\n</div>",
+						array( $message, $target )
+					);
 				}
 			}
 		}
 	}
 }
+
 /**
- * Pager for Special:Contributions
+ * Pager for Special:GlobalContributions
  * @ingroup SpecialPage Pager
  */
 class GlobalContribsPager extends ContribsPager {
@@ -235,29 +237,29 @@ class GlobalContribsPager extends ContribsPager {
 
 		/*
 		 * This hook will allow extensions to add in additional queries, so they can get their data
-		* in My Contributions as well. Extensions should append their results to the $data array.
-		*
-		* Extension queries have to implement the navbar requirement as well. They should
-		* - have a column aliased as $pager->getIndexField()
-		* - have LIMIT set
-		* - have a WHERE-clause that compares the $pager->getIndexField()-equivalent column to the offset
-		* - have the ORDER BY specified based upon the details provided by the navbar
-		*
-		* See includes/Pager.php buildQueryInfo() method on how to build LIMIT, WHERE & ORDER BY
-		*
-		* &$data: an array of results of all contribs queries
-		* $pager: the ContribsPager object hooked into
-		* $offset: see phpdoc above
-		* $limit: see phpdoc above
-		* $descending: see phpdoc above
-		*/
+		 * in My Contributions as well. Extensions should append their results to the $data array.
+		 *
+		 * Extension queries have to implement the navbar requirement as well. They should
+		 * - have a column aliased as $pager->getIndexField()
+		 * - have LIMIT set
+		 * - have a WHERE-clause that compares the $pager->getIndexField()-equivalent column to the offset
+		 * - have the ORDER BY specified based upon the details provided by the navbar
+		 *
+		 * See includes/Pager.php buildQueryInfo() method on how to build LIMIT, WHERE & ORDER BY
+		 *
+		 * &$data: an array of results of all contribs queries
+		 * $pager: the ContribsPager object hooked into
+		 * $offset: see phpdoc above
+		 * $limit: see phpdoc above
+		 * $descending: see phpdoc above
+		 */
 		$data = array();
 		global $wgConf;
-		foreach( $wgConf->wikis as $wiki ){
+		foreach ( $wgConf->wikis as $wiki ) {
 			$dbr = wfGetDB( DB_SLAVE, array(), $wiki );
 			$thisData = $dbr->select( $tables, $fields, $conds, $fname, $options, $join_conds );
 			$newData = array();
-			foreach( $thisData as $i => $row ){
+			foreach ( $thisData as $i => $row ) {
 				//$dat[$i] -> wiki = $wiki;
 				$row->wiki = $wiki;
 				$newData[] = $row;
@@ -266,9 +268,7 @@ class GlobalContribsPager extends ContribsPager {
 			$data[] = $newData;
 		}
 		//$data = array( GlobalDB::selectAll( $tables, $fields, $conds, $fname, $options, $join_conds ), );
-		wfRunHooks( 'GlobalContribsPager::reallyDoQuery', array( &$data, $pager, $offset, $limit, $descending ) );
-		//echo "<br><br><br>";
-		//var_dump( $data );
+		Hooks::run( 'GlobalContribsPager::reallyDoQuery', array( &$data, $pager, $offset, $limit, $descending ) );
 
 		$result = array();
 
@@ -314,11 +314,11 @@ class GlobalContribsPager extends ContribsPager {
 			$condition[] = "rev_deleted != '0'";
 		}
 		if ( $this->topOnly ) {
-			$condition[] = "rev_id = page_latest";
+			$condition[] = 'rev_id = page_latest';
 		}
+
 		return array( $tables, $index, $condition, $join_conds );
 	}
-
 
 	function getQueryInfo() {
 		list( $tables, $index, $userCond, $join_cond ) = $this->getUserCond();
@@ -331,7 +331,7 @@ class GlobalContribsPager extends ContribsPager {
 			$conds[] = $this->mDb->bitAnd( 'rev_deleted', Revision::DELETED_USER ) . ' = 0';
 		} elseif ( !$user->isAllowed( 'suppressrevision' ) ) {
 			$conds[] = $this->mDb->bitAnd( 'rev_deleted', Revision::SUPPRESSED_USER ) .
-			' != ' . Revision::SUPPRESSED_USER;
+				' != ' . Revision::SUPPRESSED_USER;
 		}
 
 		# Don't include orphaned revisions
@@ -341,7 +341,7 @@ class GlobalContribsPager extends ContribsPager {
 
 		$options = array();
 		if ( $index ) {
-		$options['USE INDEX'] = array( 'revision' => $index );
+			$options['USE INDEX'] = array( 'revision' => $index );
 		}
 
 		$queryInfo = array(
@@ -350,7 +350,7 @@ class GlobalContribsPager extends ContribsPager {
 				Revision::selectFields(),
 				array( 'page_namespace', 'page_title', 'page_is_new',
 					'page_latest', 'page_is_redirect', 'page_len' )
-				),
+			),
 			'conds' => $conds,
 			'options' => $options,
 			'join_conds' => $join_cond
@@ -365,47 +365,50 @@ class GlobalContribsPager extends ContribsPager {
 			$this->tagFilter
 		);
 
-		wfRunHooks( 'ContribsPager::getQueryInfo', array( &$this, &$queryInfo ) );
+		Hooks::run( 'ContribsPager::getQueryInfo', array( &$this, &$queryInfo ) );
 
 		return $queryInfo;
 	}
 
 	function doBatchLookups() {
 		global $wgConf;
+
 		# Do a link batch query
 		$this->mResult->seek( 0 );
 		$revIds = array();
 		$batch = new LinkBatch();
+
 		# Give some pointers to make (last) links
 		foreach ( $this->mResult as $row ) {
-			if( isset( $row->rev_parent_id ) && $row->rev_parent_id ) {
+			if ( isset( $row->rev_parent_id ) && $row->rev_parent_id ) {
 				$revIds[] = $row->rev_parent_id;
 			}
 			if ( isset( $row->rev_id ) ) {
 				$batch->add( $row->page_namespace, $row->page_title );
 			}
 		}
+
 		foreach ( $wgConf->wikis as $wiki ) {
 			$this->mParentLensArr[$wiki] = Revision::getParentLengths( wfGetDB( DB_SLAVE, array(), $wiki ), $revIds );
 		}
+
 		$batch->execute();
 		$this->mResult->seek( 0 );
 	}
 
 	function formatRow( $row ) {
 		global $wgConf;
-		wfProfileIn( __METHOD__ );
 
 		$ret = '';
 		$classes = array();
 
 		/*
 		 * There may be more than just revision rows. To make sure that we'll only be processing
-		* revisions here, let's _try_ to build a revision out of our row (without displaying
-			 * notices though) and then trying to grab data from the built object. If we succeed,
-		* we're definitely dealing with revision data and we may proceed, if not, we'll leave it
-		* to extensions to subscribe to the hook to parse the row.
-		*/
+		 * revisions here, let's _try_ to build a revision out of our row (without displaying
+		 * notices though) and then trying to grab data from the built object. If we succeed,
+		 * we're definitely dealing with revision data and we may proceed, if not, we'll leave it
+		 * to extensions to subscribe to the hook to parse the row.
+		 */
 		wfSuppressWarnings();
 		$rev = new Revision( $row );
 		$validRevision = $rev->getParentId() !== null;
@@ -433,8 +436,11 @@ class GlobalContribsPager extends ContribsPager {
 			if ( $row->rev_id == $row->page_latest ) {
 				$topmarktext .= '<span class="mw-uctop">' . $this->messages['uctop'] . '</span>';
 				# Add rollback link
-				if ( !$row->page_is_new && $page->quickUserCan( 'rollback', $user )
-				&& $page->quickUserCan( 'edit', $user ) )
+				if (
+					!$row->page_is_new &&
+					$page->quickUserCan( 'rollback', $user ) &&
+					$page->quickUserCan( 'edit', $user )
+				)
 				{
 					$this->preventClickjacking();
 					$topmarktext .= ' ' . Linker::generateRollback( $rev, $this->getContext() );
@@ -517,7 +523,7 @@ class GlobalContribsPager extends ContribsPager {
 
 			# Denote if username is redacted for this edit
 			if ( $rev->isDeleted( Revision::DELETED_USER ) ) {
-				$ret .= " <strong>" . $this->msg( 'rev-deleted-user-contribs' )->escaped() . "</strong>";
+				$ret .= ' <strong>' . $this->msg( 'rev-deleted-user-contribs' )->escaped() . '</strong>';
 			}
 
 			# Tags, if any.
@@ -527,14 +533,13 @@ class GlobalContribsPager extends ContribsPager {
 		}
 
 		// Let extensions add data
-		wfRunHooks( 'ContributionsLineEnding', array( $this, &$ret, $row, &$classes ) );
+		Hooks::run( 'ContributionsLineEnding', array( $this, &$ret, $row, &$classes ) );
 
 		$wiki = "<span class='gc-wiki'>{$row->wiki} - </span>";
 
 		$classes = implode( ' ', $classes );
 		$ret = "<li class=\"$classes\">$wiki$ret</li>\n";
 
-		wfProfileOut( __METHOD__ );
 		return $ret;
 	}
 }

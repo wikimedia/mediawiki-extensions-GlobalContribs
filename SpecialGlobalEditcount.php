@@ -23,17 +23,19 @@ class SpecialGlobalEditcount extends Editcount {
 
 		if ( $this->including() ) {
 			if ( $namespace === null ) {
-				if ($uid != 0)
+				if ( $uid != 0 ) {
 					$out = $wgContLang->formatNum( User::edits( $uid ) );
-				else
-					$out = "";
+				} else {
+					$out = '';
+				}
 			} else {
 				$out = $wgContLang->formatNum( $this->editsInNs( $uid, $namespace ) );
 			}
 			$wgOut->addHTML( $out );
 		} else {
-			if ($uid != 0)
+			if ( $uid != 0 ) {
 				$total = $this->getTotal( $nscount = $this->editsByNs( $uid ) );
+			}
 			$html = new GlobalEditcountHTML;
 			$html->outputHTML( $username, $uid, @$nscount, @$total );
 		}
@@ -78,7 +80,7 @@ class SpecialGlobalEditcount extends Editcount {
 	 * Count the number of edits of a user in a given namespace
 	 *
 	 * @param int $uid The user ID to check
-	 * @param int $ns  The namespace to check
+	 * @param int $ns The namespace to check
 	 * @return string
 	 */
 	function editsInNs( $uid, $ns ) {
@@ -90,7 +92,7 @@ class SpecialGlobalEditcount extends Editcount {
 			$dbr = wfGetDB( DB_SLAVE, array(), $wiki );
 			$res = $dbr->selectField(
 				array( 'revision', 'page' ),
-				array( 'COUNT(*) as count' ),
+				array( 'COUNT(*) AS count' ),
 				array(
 					'page_namespace' => $ns,
 					'rev_user' => $uid,
