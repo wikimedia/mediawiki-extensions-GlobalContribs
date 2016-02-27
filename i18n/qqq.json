@@ -1,0 +1,7 @@
+{
+	"@metadata": {
+		"authors": []
+	},
+	"globalcontribs": "The name of the extension's entry in Special:SpecialPage",
+	"globalcontribs-desc": "{{desc}}"
+}
