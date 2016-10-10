@@ -9,7 +9,7 @@
 	"url": "https://www.mediawiki.org/wiki/Extension:GlobalContribs",
 	"descriptionmsg": "globalcontribs-desc",
 	"license-name": "GPL-3.0",
-	"type": "other",
+	"type": "specialpage",
 	"AutoloadClasses": {
 		"GlobalEditcountHTML": "SpecialGlobalEditcount.php",
 		"GlobalContribsPager": "SpecialGlobalContributions.php",
@@ -20,5 +20,10 @@
 		"GlobalContribs": [
 			"i18n"
 		]
-	}
+	},
+	"SpecialPages": {
+		"GlobalContributions": "SpecialGlobalContributions",
+		"GlobalEditcount": "SpecialGlobalEditcount"
+	},
+	"manifest_version": 1
 }
