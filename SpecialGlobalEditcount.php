@@ -24,7 +24,7 @@ class SpecialGlobalEditcount extends Editcount {
 		if ( $this->including() ) {
 			if ( $namespace === null ) {
 				if ( $uid != 0 ) {
-					$out = $wgContLang->formatNum( User::edits( $uid ) );
+					$out = $wgContLang->formatNum( User::newFromName( $username )->getEditCount() );
 				} else {
 					$out = '';
 				}
