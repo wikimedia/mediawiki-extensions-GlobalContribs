@@ -2,6 +2,7 @@
 	"@metadata": {
 		"authors": []
 	},
-	"globalcontribs": "The name of the extension's entry in Special:SpecialPage",
+	"globalcontribs": "The name of the extension's entry in Special:SpecialPages",
+	"globaleditcount": "The name of the global editcount special page in Special:SpecialPages",
 	"globalcontribs-desc": "{{desc}}"
 }

@@ -29,6 +29,10 @@
  */
 class SpecialGlobalContributions extends SpecialContributions {
 
+	public function getDescription() {
+		return $this->msg( 'globalcontribs' )->escaped();
+	}
+
 	public function __construct() {
 		SpecialPage::__construct( 'GlobalContributions' );
 	}
@@ -207,7 +211,7 @@ class SpecialGlobalContributions extends SpecialContributions {
 			if ( $message ) {
 				if ( !$this->msg( $message, $target )->isDisabled() ) {
 					$out->wrapWikiMsg(
-						"<div class='mw-contributions-footer'>\n$1\n</div>",
+						"<footer class='mw-contributions-footer'>\n$1\n</footer>",
 						array( $message, $target )
 					);
 				}
