@@ -21,6 +21,9 @@
 			"i18n"
 		]
 	},
+	"ExtensionMessagesFiles": {
+		"GlobalContribsAlias": "GlobalContribs.alias.php"
+	},
 	"SpecialPages": {
 		"GlobalContributions": "SpecialGlobalContributions",
 		"GlobalEditcount": "SpecialGlobalEditcount"
