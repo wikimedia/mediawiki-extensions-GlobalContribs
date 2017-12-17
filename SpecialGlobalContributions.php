@@ -369,7 +369,9 @@ class GlobalContribsPager extends ContribsPager {
 			$this->tagFilter
 		);
 
-		Hooks::run( 'ContribsPager::getQueryInfo', array( &$this, &$queryInfo ) );
+		// Avoid PHP 7.1 warning of passing $this by reference
+		$globalContribsPager = $this;
+		Hooks::run( 'ContribsPager::getQueryInfo', array( &$globalContribsPager, &$queryInfo ) );
 
 		return $queryInfo;
 	}
