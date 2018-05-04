@@ -22,6 +22,8 @@
  * @ingroup SpecialPage
  */
 
+use MediaWiki\MediaWikiServices;
+
 /**
  * Special:GlobalContributions, show user contributions in a paged list
  *
@@ -182,7 +184,8 @@ class SpecialGlobalContributions extends SpecialContributions {
 				$out->addWikiMsg( 'nocontribs', $target );
 			} else {
 				# Show a message about slave lag, if applicable
-				$lag = wfGetLB()->safeGetLag( $pager->getDatabase() );
+				$lb = MediaWikiServices::getInstance()->getDBLoadBalancer();
+				$lag = $lb->safeGetLag( $pager->getDatabase() );
 				if ( $lag > 0 ) {
 					$out->showLagWarning( $lag );
 				}
