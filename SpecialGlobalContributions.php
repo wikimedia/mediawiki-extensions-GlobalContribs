@@ -418,10 +418,10 @@ class GlobalContribsPager extends ContribsPager {
 		 * we're definitely dealing with revision data and we may proceed, if not, we'll leave it
 		 * to extensions to subscribe to the hook to parse the row.
 		 */
-		wfSuppressWarnings();
+		Wikimedia\suppressWarnings();
 		$rev = new Revision( $row );
 		$validRevision = $rev->getParentId() !== null;
-		wfRestoreWarnings();
+		Wikimedia\restoreWarnings();
 
 		if ( $validRevision ) {
 			$classes = array();
