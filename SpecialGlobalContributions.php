@@ -263,7 +263,7 @@ class GlobalContribsPager extends ContribsPager {
 		$data = array();
 		global $wgConf;
 		foreach ( $wgConf->wikis as $wiki ) {
-			$dbr = wfGetDB( DB_SLAVE, array(), $wiki );
+			$dbr = wfGetDB( DB_REPLICA, array(), $wiki );
 			$thisData = $dbr->select( $tables, $fields, $conds, $fname, $options, $join_conds );
 			$newData = array();
 			foreach ( $thisData as $i => $row ) {
@@ -398,7 +398,7 @@ class GlobalContribsPager extends ContribsPager {
 		}
 
 		foreach ( $wgConf->wikis as $wiki ) {
-			$this->mParentLensArr[$wiki] = Revision::getParentLengths( wfGetDB( DB_SLAVE, array(), $wiki ), $revIds );
+			$this->mParentLensArr[$wiki] = Revision::getParentLengths( wfGetDB( DB_REPLICA, array(), $wiki ), $revIds );
 		}
 
 		$batch->execute();
