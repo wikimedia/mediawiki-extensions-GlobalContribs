@@ -53,7 +53,7 @@ class SpecialGlobalEditcount extends Editcount {
 		$nscount = array();
 
 		foreach ( $wgConf->wikis as $wiki ) {
-			$dbr = wfGetDB( DB_SLAVE, array(), $wiki );
+			$dbr = wfGetDB( DB_REPLICA, array(), $wiki );
 			$res = $dbr->select(
 				array( 'revision', 'page' ),
 				array( 'page_namespace', 'COUNT(*) AS count' ),
@@ -89,7 +89,7 @@ class SpecialGlobalEditcount extends Editcount {
 		$i = 0;
 
 		foreach ( $wgConf->wikis as $wiki ) {
-			$dbr = wfGetDB( DB_SLAVE, array(), $wiki );
+			$dbr = wfGetDB( DB_REPLICA, array(), $wiki );
 			$res = $dbr->selectField(
 				array( 'revision', 'page' ),
 				array( 'COUNT(*) AS count' ),
