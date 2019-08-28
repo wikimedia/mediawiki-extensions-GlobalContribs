@@ -11,13 +11,16 @@
 	"license-name": "GPL-3.0-only",
 	"type": "specialpage",
 	"requires": {
-		"MediaWiki": ">= 1.31.0"
+		"MediaWiki": ">= 1.31.0",
+		"extensions": {
+			"Editcount": "*"
+		}
 	},
 	"AutoloadClasses": {
-		"GlobalEditcountHTML": "SpecialGlobalEditcount.php",
-		"GlobalContribsPager": "SpecialGlobalContributions.php",
-		"SpecialGlobalContributions": "SpecialGlobalContributions.php",
-		"SpecialGlobalEditcount": "SpecialGlobalEditcount.php"
+		"GlobalEditcountHTML": "specials/SpecialGlobalEditcount.php",
+		"GlobalContribsPager": "specials/SpecialGlobalContributions.php",
+		"SpecialGlobalContributions": "specials/SpecialGlobalContributions.php",
+		"SpecialGlobalEditcount": "specials/SpecialGlobalEditcount.php"
 	},
 	"MessagesDirs": {
 		"GlobalContribs": [

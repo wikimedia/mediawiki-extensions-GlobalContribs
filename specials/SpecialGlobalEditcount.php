@@ -1,20 +1,23 @@
 <?php
 
+use MediaWiki\MediaWikiServices;
+
 class SpecialGlobalEditcount extends Editcount {
 
 	public function __construct() {
 		IncludableSpecialPage::__construct( 'GlobalEditcount' );
 	}
 
-	/**
-	 * main()
-	 */
 	public function execute( $par ) {
 		global $wgRequest, $wgOut, $wgContLang;
 
 		$target = isset( $par ) ? $par : $wgRequest->getText( 'username' );
 
-		list( $username, $namespace ) = $this->extractParamaters( $target );
+		$target = explode( '/', $target, 2 );
+		$username = $target[0];
+		$namespace = isset( $target[1] )
+			? MediaWikiServices::getInstance()->getContentLanguage()->getNsIndex( $target[1] )
+			: null;
 
 		$username = Title::newFromText( $username );
 		$username = is_object( $username ) ? $username->getText() : '';
@@ -33,11 +36,9 @@ class SpecialGlobalEditcount extends Editcount {
 			}
 			$wgOut->addHTML( $out );
 		} else {
-			if ( $uid != 0 ) {
-				$total = $this->getTotal( $nscount = $this->editsByNs( $uid ) );
-			}
+			$nscount = $this->editsByNs( $uid );
 			$html = new GlobalEditcountHTML;
-			$html->outputHTML( $username, $uid, @$nscount, @$total );
+			$html->outputHTML( $username, $uid, $nscount, array_sum( $nscount ) );
 		}
 	}
 
@@ -47,8 +48,12 @@ class SpecialGlobalEditcount extends Editcount {
 	 * @param int $uid The user ID to check
 	 * @return array
 	 */
-	function editsByNs( $uid ) {
+	protected function editsByNs( $uid ) {
 		global $wgConf;
+
+		if ( $uid <= 0 ) {
+			return [];
+		}
 
 		$nscount = array();
 
@@ -81,10 +86,14 @@ class SpecialGlobalEditcount extends Editcount {
 	 *
 	 * @param int $uid The user ID to check
 	 * @param int $ns The namespace to check
-	 * @return string
+	 * @return int
 	 */
-	function editsInNs( $uid, $ns ) {
+	protected function editsInNs( $uid, $ns ) {
 		global $wgConf;
+
+		if ( $uid <= 0 ) {
+			return 0;
+		}
 
 		$i = 0;
 
@@ -104,7 +113,7 @@ class SpecialGlobalEditcount extends Editcount {
 			$i += intval( $res );
 		}
 
-		return strval( $i );
+		return $i;
 	}
 }
 
@@ -113,7 +122,7 @@ class GlobalEditcountHTML extends EditcountHTML {
 	/**
 	 * Not ideal, but for calls to $this->getTitle() return Editcount (no global) otherwise
 	 */
-	function getPageTitle() {
+	public function getPageTitle( $subpage = false ) {
 		return SpecialPage::getTitleFor( 'GlobalEditcount' );
 	}
 }
