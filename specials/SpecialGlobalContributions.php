@@ -23,6 +23,7 @@
  */
 
 use MediaWiki\MediaWikiServices;
+use Wikimedia\Rdbms\IResultWrapper;
 
 /**
  * Special:GlobalContributions, show user contributions in a paged list
@@ -69,7 +70,7 @@ class SpecialGlobalContributions extends SpecialContributions {
 		$this->opts['deletedOnly'] = $request->getBool( 'deletedOnly' );
 
 		if ( !strlen( $target ) ) {
-			$out->addHTML( $this->getForm() );
+			$out->addHTML( $this->getForm( [] ) );
 			return;
 		}
 
@@ -81,12 +82,12 @@ class SpecialGlobalContributions extends SpecialContributions {
 
 		$nt = Title::makeTitleSafe( NS_USER, $target );
 		if ( !$nt ) {
-			$out->addHTML( $this->getForm() );
+			$out->addHTML( $this->getForm( [] ) );
 			return;
 		}
 		$userObj = User::newFromName( $nt->getText(), false );
 		if ( !$userObj ) {
-			$out->addHTML( $this->getForm() );
+			$out->addHTML( $this->getForm( [] ) );
 			return;
 		}
 		$id = $userObj->getID();
@@ -167,7 +168,7 @@ class SpecialGlobalContributions extends SpecialContributions {
 		$this->addFeedLinks( array( 'action' => 'feedcontributions', 'user' => $target ) );
 
 		if ( Hooks::run( 'SpecialContributionsBeforeMainOutput', array( $id ) ) ) {
-			$out->addHTML( $this->getForm() );
+			$out->addHTML( $this->getForm( [] ) );
 
 			$pager = new GlobalContribsPager( $this->getContext(), array(
 				'target' => $target,
@@ -236,7 +237,7 @@ class GlobalContribsPager extends ContribsPager {
 	 * @param $offset String: index offset, inclusive
 	 * @param $limit Integer: exact query limit
 	 * @param $descending Boolean: query direction, false for ascending, true for descending
-	 * @return ResultWrapper
+	 * @return IResultWrapper
 	 */
 	function reallyDoQuery( $offset, $limit, $descending ) {
 		list( $tables, $fields, $conds, $fname, $options, $join_conds ) = $this->buildQueryInfo( $offset, $limit, $descending );
