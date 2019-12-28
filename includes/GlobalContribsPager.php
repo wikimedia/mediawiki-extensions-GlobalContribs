@@ -1,228 +1,6 @@
 <?php
 
-/**
- * Implements Special:GlobalContributions
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- * http://www.gnu.org/copyleft/gpl.html
- *
- * @file
- * @ingroup SpecialPage
- */
-
-use MediaWiki\MediaWikiServices;
 use Wikimedia\Rdbms\IResultWrapper;
-
-/**
- * Special:GlobalContributions, show user contributions in a paged list
- *
- * @ingroup SpecialPage
- */
-class SpecialGlobalContributions extends SpecialContributions {
-
-	public function getDescription() {
-		return $this->msg( 'globalcontribs' )->escaped();
-	}
-
-	public function __construct() {
-		SpecialPage::__construct( 'GlobalContributions' );
-	}
-
-	public function execute( $par ) {
-		$this->setHeaders();
-		$this->outputHeader();
-
-		$out = $this->getOutput();
-		$out->addModuleStyles( 'mediawiki.special' );
-
-		$this->opts = array();
-		$request = $this->getRequest();
-
-		if ( $par !== null ) {
-			$target = $par;
-		} else {
-			$target = $request->getVal( 'target' );
-		}
-
-		// check for radiobox
-		if ( $request->getVal( 'contribs' ) == 'newbie' ) {
-			$target = 'newbies';
-			$this->opts['contribs'] = 'newbie';
-		} elseif ( $par === 'newbies' ) { // b/c for WMF
-			$target = 'newbies';
-			$this->opts['contribs'] = 'newbie';
-		} else {
-			$this->opts['contribs'] = 'user';
-		}
-
-		$this->opts['deletedOnly'] = $request->getBool( 'deletedOnly' );
-
-		if ( !strlen( $target ) ) {
-			$out->addHTML( $this->getForm( [] ) );
-			return;
-		}
-
-		$user = $this->getUser();
-
-		$this->opts['limit'] = $request->getInt( 'limit', $user->getOption( 'rclimit' ) );
-		$this->opts['target'] = $target;
-		$this->opts['topOnly'] = $request->getBool( 'topOnly' );
-
-		$nt = Title::makeTitleSafe( NS_USER, $target );
-		if ( !$nt ) {
-			$out->addHTML( $this->getForm( [] ) );
-			return;
-		}
-		$userObj = User::newFromName( $nt->getText(), false );
-		if ( !$userObj ) {
-			$out->addHTML( $this->getForm( [] ) );
-			return;
-		}
-		$id = $userObj->getID();
-
-		if ( $this->opts['contribs'] != 'newbie' ) {
-			$target = $nt->getText();
-			$out->addSubtitle( $this->contributionsSub( $userObj ) );
-			$out->setHTMLTitle( $this->msg( 'pagetitle', $this->msg( 'contributions-title', $target )->plain() ) );
-			$this->getSkin()->setRelevantUser( $userObj );
-		} else {
-			$out->addSubtitle( $this->msg( 'sp-contributions-newbies-sub' ) );
-			$out->setHTMLTitle( $this->msg( 'pagetitle', $this->msg( 'sp-contributions-newbies-title' )->plain() ) );
-		}
-
-		if ( ( $ns = $request->getVal( 'namespace', null ) ) !== null && $ns !== '' ) {
-			$this->opts['namespace'] = intval( $ns );
-		} else {
-			$this->opts['namespace'] = '';
-		}
-
-		$this->opts['associated'] = $request->getBool( 'associated' );
-
-		$this->opts['nsInvert'] = (bool) $request->getVal( 'nsInvert' );
-
-		$this->opts['tagfilter'] = (string) $request->getVal( 'tagfilter' );
-
-		// Allows reverts to have the bot flag in recent changes. It is just here to
-		// be passed in the form at the top of the page
-		if ( $user->isAllowed( 'markbotedits' ) && $request->getBool( 'bot' ) ) {
-			$this->opts['bot'] = '1';
-		}
-
-		$skip = $request->getText( 'offset' ) || $request->getText( 'dir' ) == 'prev';
-		# Offset overrides year/month selection
-		if ( $skip ) {
-			$this->opts['year'] = '';
-			$this->opts['month'] = '';
-		} else {
-			$this->opts['year'] = $request->getIntOrNull( 'year' );
-			$this->opts['month'] = $request->getIntOrNull( 'month' );
-		}
-
-		$feedType = $request->getVal( 'feed' );
-		if ( $feedType ) {
-			// Maintain some level of backwards compatability
-			// If people request feeds using the old parameters, redirect to API
-			$apiParams = array(
-				'action' => 'feedcontributions',
-				'feedformat' => $feedType,
-				'user' => $target,
-			);
-			if ( $this->opts['topOnly'] ) {
-				$apiParams['toponly'] = true;
-			}
-			if ( $this->opts['deletedOnly'] ) {
-				$apiParams['deletedonly'] = true;
-			}
-			if ( $this->opts['tagfilter'] !== '' ) {
-				$apiParams['tagfilter'] = $this->opts['tagfilter'];
-			}
-			if ( $this->opts['namespace'] !== '' ) {
-				$apiParams['namespace'] = $this->opts['namespace'];
-			}
-			if ( $this->opts['year'] !== null ) {
-				$apiParams['year'] = $this->opts['year'];
-			}
-			if ( $this->opts['month'] !== null ) {
-				$apiParams['month'] = $this->opts['month'];
-			}
-
-			$url = wfScript( 'api' ) . '?' . wfArrayToCGI( $apiParams );
-
-			$out->redirect( $url, '301' );
-			return;
-		}
-
-		// Add RSS/atom links
-		$this->addFeedLinks( array( 'action' => 'feedcontributions', 'user' => $target ) );
-
-		if ( Hooks::run( 'SpecialContributionsBeforeMainOutput', array( $id ) ) ) {
-			$out->addHTML( $this->getForm( [] ) );
-
-			$pager = new GlobalContribsPager( $this->getContext(), array(
-				'target' => $target,
-				'contribs' => $this->opts['contribs'],
-				'namespace' => $this->opts['namespace'],
-				'year' => $this->opts['year'],
-				'month' => $this->opts['month'],
-				'deletedOnly' => $this->opts['deletedOnly'],
-				'topOnly' => $this->opts['topOnly'],
-				'nsInvert' => $this->opts['nsInvert'],
-				'associated' => $this->opts['associated'],
-			) );
-			if ( !$pager->getNumRows() ) {
-				$out->addWikiMsg( 'nocontribs', $target );
-			} else {
-				# Show a message about slave lag, if applicable
-				$lb = MediaWikiServices::getInstance()->getDBLoadBalancer();
-				$lag = $lb->safeGetLag( $pager->getDatabase() );
-				if ( $lag > 0 ) {
-					$out->showLagWarning( $lag );
-				}
-
-				$out->addHTML(
-					'<p>' . $pager->getNavigationBar() . '</p>' .
-					$pager->getBody() .
-					'<p>' . $pager->getNavigationBar() . '</p>'
-				);
-			}
-			$out->preventClickjacking( $pager->getPreventClickjacking() );
-
-
-			# Show the appropriate "footer" message - WHOIS tools, etc.
-			if ( $this->opts['contribs'] == 'newbie' ) {
-				$message = 'sp-contributions-footer-newbies';
-			} elseif ( IP::isIPAddress( $target ) ) {
-				$message = 'sp-contributions-footer-anon';
-			} elseif ( $userObj->isAnon() ) {
-				// No message for non-existing users
-				$message = '';
-			} else {
-				$message = 'sp-contributions-footer';
-			}
-
-			if ( $message ) {
-				if ( !$this->msg( $message, $target )->isDisabled() ) {
-					$out->wrapWikiMsg(
-						"<footer class='mw-contributions-footer'>\n$1\n</footer>",
-						array( $message, $target )
-					);
-				}
-			}
-		}
-	}
-}
 
 /**
  * Pager for Special:GlobalContributions
@@ -261,24 +39,24 @@ class GlobalContribsPager extends ContribsPager {
 		 * $limit: see phpdoc above
 		 * $descending: see phpdoc above
 		 */
-		$data = array();
+		$data = [];
 		global $wgConf;
 		foreach ( $wgConf->wikis as $wiki ) {
-			$dbr = wfGetDB( DB_REPLICA, array(), $wiki );
+			$dbr = wfGetDB( DB_REPLICA, [], $wiki );
 			$thisData = $dbr->select( $tables, $fields, $conds, $fname, $options, $join_conds );
-			$newData = array();
+			$newData = [];
 			foreach ( $thisData as $i => $row ) {
-				//$dat[$i] -> wiki = $wiki;
+				// $dat[$i] -> wiki = $wiki;
 				$row->wiki = $wiki;
 				$newData[] = $row;
-				//$newData[$i] -> wiki = $wiki;
+				// $newData[$i] -> wiki = $wiki;
 			}
 			$data[] = $newData;
 		}
-		//$data = array( GlobalDB::selectAll( $tables, $fields, $conds, $fname, $options, $join_conds ), );
-		Hooks::run( 'GlobalContribsPager::reallyDoQuery', array( &$data, $pager, $offset, $limit, $descending ) );
+		// $data = array( GlobalDB::selectAll( $tables, $fields, $conds, $fname, $options, $join_conds ), );
+		Hooks::run( 'GlobalContribsPager::reallyDoQuery', [ &$data, $pager, $offset, $limit, $descending ] );
 
-		$result = array();
+		$result = [];
 
 		// loop all results and collect them in an array
 		foreach ( $data as $j => $query ) {
@@ -305,9 +83,9 @@ class GlobalContribsPager extends ContribsPager {
 	}
 
 	function getUserCond() {
-		$condition = array();
-		$join_conds = array();
-		$tables = array( 'revision', 'page' );
+		$condition = [];
+		$join_conds = [];
+		$tables = [ 'revision', 'page' ];
 
 		$uid = User::idFromName( $this->target );
 		if ( $uid ) {
@@ -325,7 +103,7 @@ class GlobalContribsPager extends ContribsPager {
 			$condition[] = 'rev_id = page_latest';
 		}
 
-		return array( $tables, $index, $condition, $join_conds );
+		return [ $tables, $index, $condition, $join_conds ];
 	}
 
 	function getQueryInfo() {
@@ -347,22 +125,22 @@ class GlobalContribsPager extends ContribsPager {
 		# Get the current user name for accounts
 		$join_cond['user'] = Revision::userJoinCond();
 
-		$options = array();
+		$options = [];
 		if ( $index ) {
-			$options['USE INDEX'] = array( 'revision' => $index );
+			$options['USE INDEX'] = [ 'revision' => $index ];
 		}
 
-		$queryInfo = array(
+		$queryInfo = [
 			'tables' => $tables,
 			'fields' => array_merge(
 				Revision::selectFields(),
-				array( 'page_namespace', 'page_title', 'page_is_new',
-					'page_latest', 'page_is_redirect', 'page_len' )
+				[ 'page_namespace', 'page_title', 'page_is_new',
+					'page_latest', 'page_is_redirect', 'page_len' ]
 			),
 			'conds' => $conds,
 			'options' => $options,
 			'join_conds' => $join_cond
-		);
+		];
 
 		ChangeTags::modifyDisplayQuery(
 			$queryInfo['tables'],
@@ -375,7 +153,7 @@ class GlobalContribsPager extends ContribsPager {
 
 		// Avoid PHP 7.1 warning of passing $this by reference
 		$globalContribsPager = $this;
-		Hooks::run( 'ContribsPager::getQueryInfo', array( &$globalContribsPager, &$queryInfo ) );
+		Hooks::run( 'ContribsPager::getQueryInfo', [ &$globalContribsPager, &$queryInfo ] );
 
 		return $queryInfo;
 	}
@@ -385,7 +163,7 @@ class GlobalContribsPager extends ContribsPager {
 
 		# Do a link batch query
 		$this->mResult->seek( 0 );
-		$revIds = array();
+		$revIds = [];
 		$batch = new LinkBatch();
 
 		# Give some pointers to make (last) links
@@ -399,7 +177,7 @@ class GlobalContribsPager extends ContribsPager {
 		}
 
 		foreach ( $wgConf->wikis as $wiki ) {
-			$this->mParentLensArr[$wiki] = Revision::getParentLengths( wfGetDB( DB_REPLICA, array(), $wiki ), $revIds );
+			$this->mParentLensArr[$wiki] = Revision::getParentLengths( wfGetDB( DB_REPLICA, [], $wiki ), $revIds );
 		}
 
 		$batch->execute();
@@ -410,7 +188,7 @@ class GlobalContribsPager extends ContribsPager {
 		global $wgConf;
 
 		$ret = '';
-		$classes = array();
+		$classes = [];
 
 		/*
 		 * There may be more than just revision rows. To make sure that we'll only be processing
@@ -425,7 +203,7 @@ class GlobalContribsPager extends ContribsPager {
 		Wikimedia\restoreWarnings();
 
 		if ( $validRevision ) {
-			$classes = array();
+			$classes = [];
 
 			$page = Title::newFromRow( $row );
 
@@ -433,10 +211,10 @@ class GlobalContribsPager extends ContribsPager {
 
 			$link = Html::element(
 				'a',
-				array(
+				[
 					'href' => $url,
 					'class' => 'mw-contributions-title',
-				),
+				],
 				htmlspecialchars( $page->getPrefixedText() )
 			);
 
@@ -450,8 +228,7 @@ class GlobalContribsPager extends ContribsPager {
 					!$row->page_is_new &&
 					$page->quickUserCan( 'rollback', $user ) &&
 					$page->quickUserCan( 'edit', $user )
-				)
-				{
+				) {
 					$this->preventClickjacking();
 					$topmarktext .= ' ' . Linker::generateRollback( $rev, $this->getContext() );
 				}
@@ -460,9 +237,9 @@ class GlobalContribsPager extends ContribsPager {
 			if ( $rev->userCan( Revision::DELETED_TEXT, $user ) && $rev->getParentId() !== 0 ) {
 				$difftext = Html::element(
 					'a',
-					array(
+					[
 						'href' => $url . '?diff=prev&oldid=' . $row->rev_id,
-					),
+					],
 					$this->messages['diff']
 				);
 			} else {
@@ -470,9 +247,9 @@ class GlobalContribsPager extends ContribsPager {
 			}
 			$histlink = Html::element(
 				'a',
-				array(
+				[
 					'href' => $url . '?action=history',
-				),
+				],
 				$this->messages['hist']
 			);
 
@@ -493,10 +270,10 @@ class GlobalContribsPager extends ContribsPager {
 			if ( $rev->userCan( Revision::DELETED_TEXT, $user ) ) {
 				$d = Html::element(
 					'a',
-					array(
+					[
 						'href' => $url . '?oldid=' . intval( $row->rev_id ),
 						'class' => 'mw-changeslist-date',
-					),
+					],
 					htmlspecialchars( $date )
 				);
 			} else {
@@ -543,7 +320,7 @@ class GlobalContribsPager extends ContribsPager {
 		}
 
 		// Let extensions add data
-		Hooks::run( 'ContributionsLineEnding', array( $this, &$ret, $row, &$classes ) );
+		Hooks::run( 'ContributionsLineEnding', [ $this, &$ret, $row, &$classes ] );
 
 		$wiki = "<span class='gc-wiki'>{$row->wiki} - </span>";
 
@@ -552,4 +329,5 @@ class GlobalContribsPager extends ContribsPager {
 
 		return $ret;
 	}
+
 }

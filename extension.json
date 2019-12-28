@@ -1,6 +1,6 @@
 {
 	"name": "GlobalContribs",
-	"version": "1.2.0",
+	"version": "1.3.0",
 	"author": [
 		"Adam Carter",
 		"George Barnick",
@@ -17,10 +17,10 @@
 		}
 	},
 	"AutoloadClasses": {
-		"GlobalEditcountHTML": "specials/SpecialGlobalEditcount.php",
-		"GlobalContribsPager": "specials/SpecialGlobalContributions.php",
-		"SpecialGlobalContributions": "specials/SpecialGlobalContributions.php",
-		"SpecialGlobalEditcount": "specials/SpecialGlobalEditcount.php"
+		"GlobalEditcountHTML": "includes/GlobalEditcountHTML.php",
+		"GlobalContribsPager": "includes/GlobalContribsPager.php",
+		"SpecialGlobalContributions": "includes/specials/SpecialGlobalContributions.php",
+		"SpecialGlobalEditcount": "includes/specials/SpecialGlobalEditcount.php"
 	},
 	"MessagesDirs": {
 		"GlobalContribs": [

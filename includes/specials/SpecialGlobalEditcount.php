@@ -3,11 +3,16 @@
 use MediaWiki\MediaWikiServices;
 
 class SpecialGlobalEditcount extends Editcount {
-
+	/**
+	 * @inheritDoc
+	 */
 	public function __construct() {
 		IncludableSpecialPage::__construct( 'GlobalEditcount' );
 	}
 
+	/**
+	 * @inheritDoc
+	 */
 	public function execute( $par ) {
 		global $wgRequest, $wgOut, $wgContLang;
 
@@ -55,19 +60,19 @@ class SpecialGlobalEditcount extends Editcount {
 			return [];
 		}
 
-		$nscount = array();
+		$nscount = [];
 
 		foreach ( $wgConf->wikis as $wiki ) {
-			$dbr = wfGetDB( DB_REPLICA, array(), $wiki );
+			$dbr = wfGetDB( DB_REPLICA, [], $wiki );
 			$res = $dbr->select(
-				array( 'revision', 'page' ),
-				array( 'page_namespace', 'COUNT(*) AS count' ),
-				array(
+				[ 'revision', 'page' ],
+				[ 'page_namespace', 'COUNT(*) AS count' ],
+				[
 					'rev_user' => $uid,
 					'rev_page = page_id'
-				),
+				],
 				__METHOD__,
-				array( 'GROUP BY' => 'page_namespace' )
+				[ 'GROUP BY' => 'page_namespace' ]
 			);
 			foreach ( $res as $row ) {
 				if ( isset( $nscount[$row->page_namespace] ) ) {
@@ -98,17 +103,17 @@ class SpecialGlobalEditcount extends Editcount {
 		$i = 0;
 
 		foreach ( $wgConf->wikis as $wiki ) {
-			$dbr = wfGetDB( DB_REPLICA, array(), $wiki );
+			$dbr = wfGetDB( DB_REPLICA, [], $wiki );
 			$res = $dbr->selectField(
-				array( 'revision', 'page' ),
-				array( 'COUNT(*) AS count' ),
-				array(
+				[ 'revision', 'page' ],
+				[ 'COUNT(*) AS count' ],
+				[
 					'page_namespace' => $ns,
 					'rev_user' => $uid,
 					'rev_page = page_id'
-				),
+				],
 				__METHOD__,
-				array( 'GROUP BY' => 'page_namespace' )
+				[ 'GROUP BY' => 'page_namespace' ]
 			);
 			$i += intval( $res );
 		}
@@ -116,14 +121,3 @@ class SpecialGlobalEditcount extends Editcount {
 		return $i;
 	}
 }
-
-class GlobalEditcountHTML extends EditcountHTML {
-
-	/**
-	 * Not ideal, but for calls to $this->getTitle() return Editcount (no global) otherwise
-	 */
-	public function getPageTitle( $subpage = false ) {
-		return SpecialPage::getTitleFor( 'GlobalEditcount' );
-	}
-}
-
