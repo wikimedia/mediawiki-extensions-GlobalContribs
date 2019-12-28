@@ -6,10 +6,10 @@
  * @ingroup Extensions
  */
 
-$specialPageAliases = array();
+$specialPageAliases = [];
 
 /** English (English) */
-$specialPageAliases['en'] = array(
-	'GlobalEditcount' => array( 'GlobalEditcount' ),
-	'GlobalContributions' => array( 'GlobalContributions' ),
-);
+$specialPageAliases['en'] = [
+	'GlobalEditcount' => [ 'GlobalEditcount' ],
+	'GlobalContributions' => [ 'GlobalContributions' ],
+];
