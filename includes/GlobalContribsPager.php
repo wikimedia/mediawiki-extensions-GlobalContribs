@@ -1,5 +1,6 @@
 <?php
 
+use MediaWiki\Revision\RevisionRecord;
 use Wikimedia\Rdbms\IResultWrapper;
 
 /**
@@ -234,7 +235,13 @@ class GlobalContribsPager extends ContribsPager {
 				}
 			}
 			# Is there a visible previous revision?
-			if ( $rev->userCan( Revision::DELETED_TEXT, $user ) && $rev->getParentId() !== 0 ) {
+			if ( $rev->getParentId() !== 0 &&
+				RevisionRecord::userCanBitfield(
+					$rev->getVisibility(),
+					RevisionRecord::DELETED_TEXT,
+					$user
+				)
+			) {
 				$difftext = Html::element(
 					'a',
 					[
@@ -267,7 +274,11 @@ class GlobalContribsPager extends ContribsPager {
 			$lang = $this->getLanguage();
 			$comment = $lang->getDirMark() . Linker::revComment( $rev, false, true );
 			$date = $lang->userTimeAndDate( $row->rev_timestamp, $user );
-			if ( $rev->userCan( Revision::DELETED_TEXT, $user ) ) {
+			if ( RevisionRecord::userCanBitfield(
+				$rev->getVisibility(),
+				RevisionRecord::DELETED_TEXT,
+				$user
+			) ) {
 				$d = Html::element(
 					'a',
 					[
