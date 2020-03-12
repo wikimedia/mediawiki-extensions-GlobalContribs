@@ -1,5 +1,6 @@
 <?php
 
+use MediaWiki\MediaWikiServices;
 use MediaWiki\Revision\RevisionRecord;
 use Wikimedia\Rdbms\IResultWrapper;
 
@@ -225,11 +226,16 @@ class GlobalContribsPager extends ContribsPager {
 			if ( $row->rev_id == $row->page_latest ) {
 				$topmarktext .= '<span class="mw-uctop">' . $this->messages['uctop'] . '</span>';
 				# Add rollback link
-				if (
-					!$row->page_is_new &&
-					$page->quickUserCan( 'rollback', $user ) &&
-					$page->quickUserCan( 'edit', $user )
-				) {
+				if ( class_exists( 'MediaWiki\Permissions\PermissionManager' ) ) {
+					// MW 1.33+
+					$permManager = MediaWikiServices::getInstance()->getPermissionManager();
+					$quickUserCan = $permManager->quickUserCan( 'rollback', $user, $page ) &&
+						$permManager->quickUserCan( 'edit', $user, $page );
+				} else {
+					$quickUserCan = $page->quickUserCan( 'rollback', $user ) &&
+						$page->quickUserCan( 'edit', $user );
+				}
+				if ( !$row->page_is_new && $quickUserCan ) {
 					$this->preventClickjacking();
 					$topmarktext .= ' ' . Linker::generateRollback( $rev, $this->getContext() );
 				}
