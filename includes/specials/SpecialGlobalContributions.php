@@ -23,6 +23,7 @@
  */
 
 use MediaWiki\MediaWikiServices;
+use Wikimedia\IPUtils;
 
 /**
  * Special:GlobalContributions, show user contributions in a paged list
@@ -201,7 +202,7 @@ class SpecialGlobalContributions extends SpecialContributions {
 			# Show the appropriate "footer" message - WHOIS tools, etc.
 			if ( $this->opts['contribs'] == 'newbie' ) {
 				$message = 'sp-contributions-footer-newbies';
-			} elseif ( IP::isIPAddress( $target ) ) {
+			} elseif ( IPUtils::isIPAddress( $target ) ) {
 				$message = 'sp-contributions-footer-anon';
 			} elseif ( $userObj->isAnon() ) {
 				// No message for non-existing users
