@@ -14,14 +14,15 @@ class SpecialGlobalEditcount extends Editcount {
 	 * @inheritDoc
 	 */
 	public function execute( $par ) {
-		global $wgRequest, $wgOut, $wgContLang;
+		global $wgRequest, $wgOut;
+		$contLang = MediaWikiServices::getInstance()->getContentLanguage();
 
 		$target = isset( $par ) ? $par : $wgRequest->getText( 'username' );
 
 		$target = explode( '/', $target, 2 );
 		$username = $target[0];
 		$namespace = isset( $target[1] )
-			? MediaWikiServices::getInstance()->getContentLanguage()->getNsIndex( $target[1] )
+			? $contLang->getNsIndex( $target[1] )
 			: null;
 
 		$username = Title::newFromText( $username );
@@ -32,12 +33,12 @@ class SpecialGlobalEditcount extends Editcount {
 		if ( $this->including() ) {
 			if ( $namespace === null ) {
 				if ( $uid != 0 ) {
-					$out = $wgContLang->formatNum( User::newFromName( $username )->getEditCount() );
+					$out = $contLang->formatNum( User::newFromName( $username )->getEditCount() );
 				} else {
 					$out = '';
 				}
 			} else {
-				$out = $wgContLang->formatNum( $this->editsInNs( $uid, $namespace ) );
+				$out = $contLang->formatNum( $this->editsInNs( $uid, $namespace ) );
 			}
 			$wgOut->addHTML( $out );
 		} else {
