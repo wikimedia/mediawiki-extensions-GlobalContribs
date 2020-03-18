@@ -178,8 +178,10 @@ class GlobalContribsPager extends ContribsPager {
 			}
 		}
 
+		$factory = MediaWikiServices::getInstance()->getRevisionStoreFactory();
 		foreach ( $wgConf->wikis as $wiki ) {
-			$this->mParentLensArr[$wiki] = Revision::getParentLengths( wfGetDB( DB_REPLICA, [], $wiki ), $revIds );
+			$this->mParentLensArr[$wiki] = $factory->getRevisionStore( $wiki )
+				->getRevisionSizes( $revIds );
 		}
 
 		$batch->execute();
