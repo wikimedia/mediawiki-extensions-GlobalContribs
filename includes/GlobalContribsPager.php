@@ -14,9 +14,9 @@ class GlobalContribsPager extends ContribsPager {
 	 * This method basically executes the exact same code as the parent class, though with
 	 * a hook added, to allow extentions to add additional queries.
 	 *
-	 * @param $offset String: index offset, inclusive
-	 * @param $limit Integer: exact query limit
-	 * @param $descending Boolean: query direction, false for ascending, true for descending
+	 * @param string $offset index offset, inclusive
+	 * @param int $limit exact query limit
+	 * @param bool $descending query direction, false for ascending, true for descending
 	 * @return IResultWrapper
 	 */
 	function reallyDoQuery( $offset, $limit, $descending ) {
