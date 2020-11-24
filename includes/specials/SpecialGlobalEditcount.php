@@ -7,7 +7,8 @@ class SpecialGlobalEditcount extends Editcount {
 	 * @inheritDoc
 	 */
 	public function __construct() {
-		IncludableSpecialPage::__construct( 'GlobalEditcount' );
+		parent::__construct();
+		$this->mName = 'GlobalEditcount';
 	}
 
 	/**

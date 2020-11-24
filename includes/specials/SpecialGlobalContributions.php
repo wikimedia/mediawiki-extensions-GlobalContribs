@@ -37,7 +37,8 @@ class SpecialGlobalContributions extends SpecialContributions {
 	}
 
 	public function __construct() {
-		SpecialPage::__construct( 'GlobalContributions' );
+		parent::__construct();
+		$this->mName = 'GlobalContributions';
 	}
 
 	public function execute( $par ) {
