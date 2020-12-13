@@ -187,7 +187,7 @@ class SpecialGlobalContributions extends SpecialContributions {
 			} else {
 				# Show a message about slave lag, if applicable
 				$lb = MediaWikiServices::getInstance()->getDBLoadBalancer();
-				$lag = $lb->safeGetLag( $pager->getDatabase() );
+				$lag = $lb->getLag( $pager->getDatabase() );
 				if ( $lag > 0 ) {
 					$out->showLagWarning( $lag );
 				}
