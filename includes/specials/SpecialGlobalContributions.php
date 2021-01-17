@@ -95,7 +95,7 @@ class SpecialGlobalContributions extends SpecialContributions {
 
 		if ( $this->opts['contribs'] != 'newbie' ) {
 			$target = $nt->getText();
-			$out->addSubtitle( $this->contributionsSub( $userObj ) );
+			$out->addSubtitle( $this->contributionsSub( $userObj, $target ) );
 			$out->setHTMLTitle( $this->msg( 'pagetitle', $this->msg( 'contributions-title', $target )->plain() ) );
 			$this->getSkin()->setRelevantUser( $userObj );
 		} else {
