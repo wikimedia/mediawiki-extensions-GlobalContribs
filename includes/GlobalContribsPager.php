@@ -274,7 +274,7 @@ class GlobalContribsPager extends ContribsPager {
 				// Next best thing is to have the total number of bytes.
 				$chardiff = ' <span class="mw-changeslist-separator">. .</span> ' . Linker::formatRevisionSize( $row->rev_len ) . ' <span class="mw-changeslist-separator">. .</span> ';
 			} else {
-				$parentLen = isset( $this->mParentLensArr[$row->wiki][$row->rev_parent_id] ) ? $this->mParentLensArr[$row->wiki][$row->rev_parent_id] : 0;
+				$parentLen = $this->mParentLensArr[$row->wiki][$row->rev_parent_id] ?? 0;
 				$chardiff = ' <span class="mw-changeslist-separator">. .</span> ' . ChangesList::showCharacterDifference(
 					$parentLen, $row->rev_len, $this->getContext() ) . ' <span class="mw-changeslist-separator">. .</span> ';
 			}

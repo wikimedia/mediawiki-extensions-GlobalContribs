@@ -18,9 +18,7 @@ class SpecialGlobalEditcount extends Editcount {
 		global $wgRequest, $wgOut;
 		$contLang = MediaWikiServices::getInstance()->getContentLanguage();
 
-		$target = isset( $par ) ? $par : $wgRequest->getText( 'username' );
-
-		$target = explode( '/', $target, 2 );
+		$target = explode( '/', $par ?? $wgRequest->getText( 'username' ), 2 );
 		$username = $target[0];
 		$namespace = isset( $target[1] )
 			? $contLang->getNsIndex( $target[1] )

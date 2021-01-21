@@ -188,7 +188,7 @@ class SpecialGlobalContributions extends SpecialContributions {
 			} else {
 				# Show a message about slave lag, if applicable
 				$lb = MediaWikiServices::getInstance()->getDBLoadBalancer();
-				$lag = $lb->getLag( $pager->getDatabase() );
+				$lag = $pager->getDatabase()->getLag();
 				if ( $lag > 0 ) {
 					$out->showLagWarning( $lag );
 				}
@@ -206,11 +206,11 @@ class SpecialGlobalContributions extends SpecialContributions {
 				$message = 'sp-contributions-footer-newbies';
 			} elseif ( IPUtils::isIPAddress( $target ) ) {
 				$message = 'sp-contributions-footer-anon';
-			} elseif ( $userObj->isAnon() ) {
+			} elseif ( $userObj->isRegistered() ) {
+				$message = 'sp-contributions-footer';
+			} else {
 				// No message for non-existing users
 				$message = '';
-			} else {
-				$message = 'sp-contributions-footer';
 			}
 
 			if ( $message ) {
