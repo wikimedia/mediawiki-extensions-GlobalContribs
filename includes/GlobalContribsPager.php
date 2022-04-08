@@ -2,6 +2,7 @@
 
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Revision\RevisionRecord;
+use Wikimedia\AtEase\AtEase;
 use Wikimedia\Rdbms\IResultWrapper;
 
 /**
@@ -201,10 +202,10 @@ class GlobalContribsPager extends ContribsPager {
 		 * we're definitely dealing with revision data and we may proceed, if not, we'll leave it
 		 * to extensions to subscribe to the hook to parse the row.
 		 */
-		Wikimedia\suppressWarnings();
+		AtEase::suppressWarnings();
 		$rev = new Revision( $row );
 		$validRevision = $rev->getParentId() !== null;
-		Wikimedia\restoreWarnings();
+		AtEase::restoreWarnings();
 
 		if ( $validRevision ) {
 			$classes = [];
