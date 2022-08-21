@@ -77,7 +77,9 @@ class SpecialGlobalContributions extends SpecialContributions {
 
 		$user = $this->getUser();
 
-		$this->opts['limit'] = $request->getInt( 'limit', $user->getOption( 'rclimit' ) );
+		$rclimit = MediaWikiServices::getInstance()->getUserOptionsManager()
+			->getOption( $user, 'rclimit' );
+		$this->opts['limit'] = $request->getInt( 'limit', $rclimit );
 		$this->opts['target'] = $target;
 		$this->opts['topOnly'] = $request->getBool( 'topOnly' );
 
