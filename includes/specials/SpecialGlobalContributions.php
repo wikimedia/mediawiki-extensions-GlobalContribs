@@ -33,7 +33,7 @@ use Wikimedia\IPUtils;
 class SpecialGlobalContributions extends SpecialContributions {
 
 	public function getDescription() {
-		return $this->msg( 'globalcontribs' )->escaped();
+		return $this->msg( 'globalcontribs' )->text();
 	}
 
 	public function __construct() {

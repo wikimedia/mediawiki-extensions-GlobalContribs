@@ -220,7 +220,7 @@ class GlobalContribsPager extends ContribsPager {
 					'href' => $url,
 					'class' => 'mw-contributions-title',
 				],
-				htmlspecialchars( $page->getPrefixedText() )
+				$page->getPrefixedText()
 			);
 
 			# Mark current revisions
@@ -294,7 +294,7 @@ class GlobalContribsPager extends ContribsPager {
 						'href' => $url . '?oldid=' . intval( $row->rev_id ),
 						'class' => 'mw-changeslist-date',
 					],
-					htmlspecialchars( $date )
+					$date
 				);
 			} else {
 				$d = htmlspecialchars( $date );
