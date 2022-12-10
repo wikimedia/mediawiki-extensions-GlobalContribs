@@ -275,7 +275,8 @@ class GlobalContribsPager extends ContribsPager {
 			}
 
 			$lang = $this->getLanguage();
-			$comment = $lang->getDirMark() . Linker::revComment( $rev, false, true );
+			$comment = $lang->getDirMark() . MediaWikiServices::getInstance()->getCommentFormatter()
+				->formatRevision( $rev, $user, false, true );
 			$date = $lang->userTimeAndDate( $row->rev_timestamp, $user );
 			if ( RevisionRecord::userCanBitfield(
 				$rev->getVisibility(),

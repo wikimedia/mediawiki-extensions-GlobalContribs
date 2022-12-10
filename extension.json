@@ -11,7 +11,7 @@
 	"license-name": "GPL-3.0-only",
 	"type": "specialpage",
 	"requires": {
-		"MediaWiki": ">= 1.35.0",
+		"MediaWiki": ">= 1.38.0",
 		"extensions": {
 			"Editcount": "*"
 		}
