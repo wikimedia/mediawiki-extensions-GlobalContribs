@@ -167,7 +167,7 @@ class GlobalContribsPager extends ContribsPager {
 		# Do a link batch query
 		$this->mResult->seek( 0 );
 		$revIds = [];
-		$batch = new LinkBatch();
+		$batch = MediaWikiServices::getInstance()->getLinkBatchFactory()->newLinkBatch();
 
 		# Give some pointers to make (last) links
 		foreach ( $this->mResult as $row ) {
