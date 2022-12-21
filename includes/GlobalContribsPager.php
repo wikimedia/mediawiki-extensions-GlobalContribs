@@ -90,7 +90,14 @@ class GlobalContribsPager extends ContribsPager {
 		$join_conds = [];
 		$tables = [ 'revision', 'page' ];
 
-		$uid = User::idFromName( $this->target );
+		if ( method_exists( MediaWikiServices::class, 'getUserIdentityLookup' ) ) {
+			// MW 1.36+
+			$userIdentity = MediaWikiServices::getInstance()->getUserIdentityLookup()
+				->getUserIdentityByName( $this->target );
+			$uid = $userIdentity ? $userIdentity->getId() : null;
+		} else {
+			$uid = User::idFromName( $this->target );
+		}
 		if ( $uid ) {
 			$condition['rev_user'] = $uid;
 			$index = 'user_timestamp';

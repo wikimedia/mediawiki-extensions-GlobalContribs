@@ -27,12 +27,13 @@ class SpecialGlobalEditcount extends Editcount {
 		$username = Title::newFromText( $username );
 		$username = is_object( $username ) ? $username->getText() : '';
 
-		$uid = User::idFromName( $username );
+		$user = User::newFromName( $username );
+		$uid = $user ? $user->getId() : 0;
 
 		if ( $this->including() ) {
 			if ( $namespace === null ) {
 				if ( $uid != 0 ) {
-					$out = $contLang->formatNum( User::newFromName( $username )->getEditCount() );
+					$out = $contLang->formatNum( $user->getEditCount() );
 				} else {
 					$out = '';
 				}
