@@ -57,7 +57,7 @@ class GlobalContribsPager extends ContribsPager {
 			$data[] = $newData;
 		}
 		// $data = array( GlobalDB::selectAll( $tables, $fields, $conds, $fname, $options, $join_conds ), );
-		Hooks::run( 'GlobalContribsPager::reallyDoQuery', [ &$data, $pager, $offset, $limit, $descending ] );
+		MediaWikiServices::getInstance()->getHookContainer()->run( 'GlobalContribsPager::reallyDoQuery', [ &$data, $pager, $offset, $limit, $descending ] );
 
 		$result = [];
 
@@ -163,7 +163,7 @@ class GlobalContribsPager extends ContribsPager {
 
 		// Avoid PHP 7.1 warning of passing $this by reference
 		$globalContribsPager = $this;
-		Hooks::run( 'ContribsPager::getQueryInfo', [ &$globalContribsPager, &$queryInfo ] );
+		MediaWikiServices::getInstance()->getHookContainer()->run( 'ContribsPager::getQueryInfo', [ &$globalContribsPager, &$queryInfo ] );
 
 		return $queryInfo;
 	}
@@ -342,7 +342,7 @@ class GlobalContribsPager extends ContribsPager {
 		}
 
 		// Let extensions add data
-		Hooks::run( 'ContributionsLineEnding', [ $this, &$ret, $row, &$classes ] );
+		MediaWikiServices::getInstance()->getHookContainer()->run( 'ContributionsLineEnding', [ $this, &$ret, $row, &$classes ] );
 
 		$wiki = "<span class='gc-wiki'>{$row->wiki} - </span>";
 

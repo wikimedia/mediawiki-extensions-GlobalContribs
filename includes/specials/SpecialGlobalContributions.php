@@ -171,7 +171,7 @@ class SpecialGlobalContributions extends SpecialContributions {
 		// Add RSS/atom links
 		$this->addFeedLinks( [ 'action' => 'feedcontributions', 'user' => $target ] );
 
-		if ( Hooks::run( 'SpecialContributionsBeforeMainOutput', [ $id ] ) ) {
+		if ( $this->getHookContainer()->run( 'SpecialContributionsBeforeMainOutput', [ $id ] ) ) {
 			$out->addHTML( $this->getForm( [] ) );
 
 			$pager = new GlobalContribsPager( $this->getContext(), [
