@@ -21,7 +21,7 @@ class GlobalContribsPager extends ContribsPager {
 	 * @return IResultWrapper
 	 */
 	function reallyDoQuery( $offset, $limit, $descending ) {
-		list( $tables, $fields, $conds, $fname, $options, $join_conds ) = $this->buildQueryInfo( $offset, $limit, $descending );
+		[ $tables, $fields, $conds, $fname, $options, $join_conds ] = $this->buildQueryInfo( $offset, $limit, $descending );
 		$pager = $this;
 
 		/*
@@ -117,7 +117,7 @@ class GlobalContribsPager extends ContribsPager {
 	}
 
 	function getQueryInfo() {
-		list( $tables, $index, $userCond, $join_cond ) = $this->getUserCond();
+		[ $tables, $index, $userCond, $join_cond ] = $this->getUserCond();
 
 		$user = $this->getUser();
 		$conds = array_merge( $userCond, $this->getNamespaceCond() );
