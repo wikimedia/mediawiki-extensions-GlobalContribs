@@ -32,8 +32,8 @@ use Wikimedia\IPUtils;
  */
 class SpecialGlobalContributions extends SpecialContributions {
 
-	public function getDescription() {
-		return $this->msg( 'globalcontribs' )->text();
+	public function getDescription(): Message {
+		return $this->msg( 'globalcontribs' );
 	}
 
 	public function __construct() {
