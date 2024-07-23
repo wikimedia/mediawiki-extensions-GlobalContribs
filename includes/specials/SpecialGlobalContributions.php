@@ -70,7 +70,7 @@ class SpecialGlobalContributions extends SpecialContributions {
 
 		$this->opts['deletedOnly'] = $request->getBool( 'deletedOnly' );
 
-		if ( !strlen( $target ) ) {
+		if ( $target === null || $target === '' ) {
 			$out->addHTML( $this->getForm( [] ) );
 			return;
 		}
